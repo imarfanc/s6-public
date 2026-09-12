@@ -1,0 +1,13 @@
+id: todo1
+status: active
+name: Todo
+description: A persistent todo list with All, Active, and Completed filters.
+icon: lucide:list-checks
+color: "#c9007e"
+appspace: Examples
+sections:
+  - testing
+tags:
+  - productivity
+store: todo1
+entry: index.html

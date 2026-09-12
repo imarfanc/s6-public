@@ -1,0 +1,1051 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title></title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <style>
+    :root {
+      /* ---- Tuning -----------------------------------------------------
+         Every dial the sidebar's feel depends on. Change a value here
+         rather than hunting for the literal it replaced — the rules below
+         are written in terms of these.
+
+         Row size
+           --row-pad-y     taller rows, easier to click. ~6px compact,
+                           9px default, 12px+ roomy. The padding lives on
+                           the inner button, so the whole row stays a real
+                           hit target at any value.
+           --row-pad-x     indents the icon from the left edge.
+           --row-gap       space between top-level rows.
+           --row-gap-tight the same, between rows inside a section.
+           --row-radius    corner rounding on hover and active rows.
+
+         Tree shape
+           --tree-indent   how far each nesting level steps right.
+           --tree-rail-gap space between a section's guide rail and its rows.
+                           These two are the roomy step; `d` cycles the
+                           sidebar through the tighter ones, which override
+                           them per #sidebar[data-indent] further down.
+           --pane-pad      padding around the sidebar header and the tree.
+
+         Sizes
+           --sidebar-w     default width. --sidebar-w2 is the wide step.
+           --toggle-size   the floating round button, bottom left.
+           --toggle-inset  its distance from the corner. The tree's bottom
+                           padding is derived from both, so the last row can
+                           always be scrolled clear of the button.
+
+         Motion and glass
+           --ease          one duration and curve, shared by the sidebar
+                           width, the mobile slide, and the chevron.
+           --glass-blur    backdrop blur radius.
+           --glass-saturate how much punch the blur keeps.
+
+         The mobile breakpoint is deliberately NOT here: CSS variables are
+         not allowed inside @media queries. It is 900px in the query at the
+         bottom of this stylesheet and in MOBILE_QUERY in the script below.
+         Change both together. */
+      --row-pad-y: 9px;
+      --row-pad-x: 8px;
+      --row-gap: 2px;
+      --row-gap-tight: 1px;
+      --row-radius: 6px;
+
+      --tree-indent: 22px;
+      --tree-rail-gap: 8px;
+      --pane-pad: 8px;
+
+      --sidebar-w: 16rem;
+      --sidebar-w2: 24rem;
+      --toggle-size: 46px;
+      --toggle-inset: 8px;
+
+      --ease: .2s ease;
+      --glass-blur: 16px;
+      --glass-saturate: 170%;
+      /* ------------------------------------------------------------------ */
+
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: light-dark(#f7f7f8, #101014);
+      --fg: light-dark(#18181b, #fafafa);
+      --muted: light-dark(#52525b, #a1a1aa);
+      --muted-bg: light-dark(rgba(0, 0, 0, .06), rgba(255, 255, 255, .1));
+      --border: light-dark(rgba(0, 0, 0, .12), rgba(255, 255, 255, .14));
+      --accent: light-dark(rgba(0, 0, 0, .06), rgba(255, 255, 255, .08));
+      --glass-bg: linear-gradient(rgba(255, 255, 255, .72), rgba(255, 255, 255, .58));
+      --glass-border: light-dark(rgba(0, 0, 0, .1), rgba(255, 255, 255, .16));
+      --preview-bg: var(--bg);
+      --preview-bg-image: none;
+      --app-color: #6366f1;
+      --app-tint-image: linear-gradient(transparent, transparent);
+      --app-accent: var(--accent);
+      --glass-tinted-bg: var(--preview-bg-image), var(--app-tint-image), var(--glass-bg);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --glass-bg: linear-gradient(rgba(24, 24, 29, .78), rgba(24, 24, 29, .72));
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      overflow: hidden;
+      background: var(--preview-bg);
+      color: var(--fg);
+      font-size: 14px;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .icon {
+      display: inline-flex;
+      width: 1rem;
+      height: 1rem;
+      flex: none;
+      color: inherit;
+    }
+
+    .glass {
+      border: 1px solid var(--glass-border);
+      background-color: var(--preview-bg);
+      background-image: var(--glass-tinted-bg);
+      background-position: center;
+      background-size: cover, auto, auto;
+      background-blend-mode: soft-light, normal, normal;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    }
+
+    body[data-preview-tone="dark"] {
+      --fg: #fafafa;
+      --muted: #a1a1aa;
+      --muted-bg: rgba(255, 255, 255, .1);
+      --border: rgba(255, 255, 255, .14);
+      --accent: rgba(255, 255, 255, .08);
+      --glass-bg: linear-gradient(rgba(255, 255, 255, .07), rgba(255, 255, 255, .02));
+      --glass-tinted-bg: var(--preview-bg-image), var(--app-tint-image), var(--glass-bg);
+      --glass-border: rgba(255, 255, 255, .09);
+    }
+
+    body[data-preview-tone="light"] {
+      --fg: #18181b;
+      --muted: #52525b;
+      --muted-bg: rgba(0, 0, 0, .06);
+      --border: rgba(0, 0, 0, .12);
+      --accent: rgba(0, 0, 0, .06);
+      --glass-bg: linear-gradient(rgba(255, 255, 255, .42), rgba(255, 255, 255, .2));
+      --glass-tinted-bg: var(--preview-bg-image), var(--app-tint-image), var(--glass-bg);
+      --glass-border: rgba(0, 0, 0, .07);
+    }
+
+    .truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #app {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    #sidebar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      width: var(--sidebar-w);
+      height: 100%;
+      flex: none;
+      flex-direction: column;
+      overflow: hidden;
+      border-width: 0 1px 0 0;
+      transition: width var(--ease), transform var(--ease);
+    }
+
+    #sidebar[data-width="wide2"] {
+      width: var(--sidebar-w2);
+    }
+    #sidebar[data-width="collapsed"] {
+      width: 0;
+      border: 0;
+    }
+    #sidebar[data-width="collapsed"] > * {
+      display: none;
+    }
+
+    #sidebar-header {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: var(--pane-pad);
+    }
+
+    #root-switcher {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .menu-btn {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .menu-btn:hover,
+    .menu-btn.is-active {
+      background: var(--app-accent);
+    }
+    .menu-btn .grow {
+      min-width: 0;
+      flex: 1;
+    }
+
+    /* An appspace with no `color:` gets no badge at all — the icon draws in
+       the sidebar's own ink (or its own colours, if it is a multicolour one)
+       on nothing. Only a declared colour turns it into a tinted tile, and only
+       then does the glyph knock out against it. */
+    #root-icon {
+      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: var(--fg);
+    }
+    #root-icon .icon {
+      width: 20px;
+      height: 20px;
+    }
+    #root-icon[data-tinted="true"] {
+      background: var(--root-tint);
+      color: var(--bg);
+    }
+
+    #root-copy {
+      display: block;
+    }
+    #root-name {
+      display: block;
+      font-weight: 650;
+      font-size: 13px;
+    }
+    #root-description {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      width: 28px;
+      height: 28px;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .icon-button:hover {
+      background: var(--accent);
+      color: var(--fg);
+    }
+    #appspace-lock[hidden] {
+      display: none;
+    }
+
+    #root-menu {
+      position: absolute;
+      z-index: 10;
+      top: calc(100% + 4px);
+      right: 0;
+      left: 0;
+      display: grid;
+      gap: 2px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      box-shadow: 0 14px 38px rgba(0, 0, 0, .25);
+    }
+
+    #root-menu[hidden] {
+      display: none;
+    }
+
+    #search-box {
+      display: flex;
+      height: 34px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+    }
+
+    #search-box:focus-within {
+      border-color: var(--app-color, var(--fg));
+    }
+    #search {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--fg);
+    }
+    #search::placeholder {
+      color: var(--muted);
+    }
+
+    #more-options {
+      anchor-name: --more-options;
+    }
+    #more-menu {
+      position: fixed;
+      position-anchor: --more-options;
+      inset: auto;
+      top: anchor(bottom);
+      right: anchor(right);
+      margin: 6px 0 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    }
+    #more-menu label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .app-tooltip__folder {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+    #sidebar-tabs {
+      display: flex;
+      gap: 4px;
+    }
+    #sidebar-tabs .tab {
+      position: relative;
+    }
+    #sidebar-tabs .tab::after {
+      content: attr(aria-label);
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 20;
+      width: max-content;
+      max-width: 240px;
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 12px;
+      line-height: 1.4;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .2);
+      pointer-events: none;
+      visibility: hidden;
+    }
+    #sidebar-tabs .tab:nth-last-child(-n+2)::after {
+      left: auto;
+      right: 0;
+    }
+    #sidebar-tabs .tab:hover::after,
+    #sidebar-tabs .tab:focus-visible::after {
+      visibility: visible;
+    }
+    .tab {
+      display: flex;
+      flex: 1;
+      justify-content: center;
+      padding: 7px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .tab:hover,
+    .tab.active {
+      background: var(--app-accent);
+      color: var(--fg);
+    }
+
+    #sidebar-tree {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: var(--row-gap);
+      overflow-y: auto;
+      /* Bottom padding clears the floating #sidebar-toggle, whatever size it is. */
+      padding: var(--pane-pad) var(--pane-pad)
+        calc(var(--toggle-size) + var(--toggle-inset) * 2);
+    }
+
+    .tree-group,
+    .app-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .tree-children,
+    .app-children {
+      display: flex;
+      flex-direction: column;
+      gap: var(--row-gap-tight);
+      margin: var(--row-gap) 0 var(--row-gap) var(--tree-indent);
+      padding-left: var(--tree-rail-gap);
+      border-left: 1px solid var(--border);
+    }
+    /* Children hang off their app rather than off a section heading, so they
+       sit tighter to it than a section's own contents do. */
+    .app-children {
+      margin-block: var(--row-gap-tight);
+    }
+    .tree-children[hidden] {
+      display: none;
+    }
+
+    /* Tree density, cycled by `d`. "roomy" is the tuning block's own value,
+       so only the tighter two need saying. Each step trims the horizontal
+       padding too: the point of a tight tree is room for the label. */
+    #sidebar[data-indent="tight"] {
+      --tree-indent: 10px;
+      --tree-rail-gap: 6px;
+      --row-pad-x: 6px;
+    }
+    #sidebar[data-indent="flat"] {
+      --tree-indent: 0px;
+      --tree-rail-gap: 6px;
+      --row-pad-x: 4px;
+    }
+
+    .tree-row,
+    .app-row,
+    .child-row {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 8px;
+      padding: var(--row-pad-y) var(--row-pad-x);
+      border: 0;
+      border-radius: var(--row-radius);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .tree-row:hover,
+    .app-row:hover,
+    .app-row.is-active,
+    .child-row:hover,
+    .child-row.is-active {
+      background: var(--app-accent);
+    }
+
+    .tree-row__chevron {
+      color: var(--muted);
+      transition: transform var(--ease);
+    }
+    .tree-row[aria-expanded="true"] .tree-row__chevron {
+      transform: rotate(90deg);
+    }
+    .tree-row__icon,
+    .app-row__icon,
+    .child-row__icon {
+      color: var(--item-color, var(--muted));
+    }
+    .tree-row__label,
+    .app-row__label,
+    .child-row__label {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tree-row__label {
+      font-weight: 550;
+    }
+    .tree-row__count {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .app-row {
+      color: var(--muted);
+      /* The row is a plain div; only .app-row__select is clickable. Drop the
+         shared row padding here and re-apply it inside the button, so the
+         button covers the full row instead of leaving a dead, pointer-cursored
+         margin around the label. Right padding stays for the external link. */
+      padding: 0 var(--row-pad-x) 0 0;
+    }
+    .app-row:hover,
+    .app-row.is-active {
+      color: var(--fg);
+    }
+    .app-row__select {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      align-items: center;
+      gap: 8px;
+      /* stretch = full row height; padding matches the old .app-row padding so
+         the row's size is unchanged, but now it's all inside the hit target. */
+      align-self: stretch;
+      padding: var(--row-pad-y) 0 var(--row-pad-y) var(--row-pad-x);
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .app-row__external {
+      opacity: 0;
+    }
+    .app-row:hover .app-row__external,
+    .app-row:focus-within .app-row__external,
+    .app-row.is-active .app-row__external {
+      opacity: 1;
+    }
+
+    /* Hotkey help. A native <dialog> so Escape, the backdrop and focus
+       trapping come for free — the rows are built from HOTKEYS in the script,
+       which is the one place a shortcut is declared. */
+    #help-dialog {
+      width: min(360px, calc(100vw - 32px));
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: 0 20px 60px light-dark(rgba(0, 0, 0, .18), rgba(0, 0, 0, .45));
+      font-size: 13px;
+    }
+    #help-dialog::backdrop {
+      background: rgba(0, 0, 0, .34);
+      backdrop-filter: blur(2px);
+    }
+    #help-dialog h2 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .help-row {
+      display: grid;
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      align-items: baseline;
+      gap: 10px;
+      padding: 5px 0;
+    }
+
+    #appspace-auth {
+      width: min(360px, calc(100vw - 32px));
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: 0 20px 60px light-dark(rgba(0, 0, 0, .18), rgba(0, 0, 0, .45));
+    }
+    #appspace-auth::backdrop {
+      background: rgba(0, 0, 0, .34);
+      backdrop-filter: blur(2px);
+    }
+    #appspace-auth h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      font-weight: 650;
+    }
+    #appspace-auth p {
+      margin: 0 0 14px;
+      color: var(--muted);
+    }
+    #appspace-auth label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 650;
+      font-size: 12px;
+    }
+    #appspace-auth-password {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: inherit;
+    }
+    #appspace-auth-error {
+      margin: 10px 0 0;
+      color: #b91c1c;
+      font-size: 13px;
+    }
+    .auth-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .auth-actions button {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--accent);
+      color: inherit;
+      cursor: pointer;
+    }
+    .auth-actions button[type="submit"] {
+      border-color: transparent;
+      background: var(--app-color);
+      color: var(--bg);
+    }
+    .menu-btn .lock-mark {
+      margin-left: auto;
+      color: var(--muted);
+    }
+    .help-row kbd {
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--muted-bg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      justify-self: start;
+    }
+
+    /* Instant metadata card for the external-open control. It lives outside
+       #sidebar so the panel's overflow never clips it — which also puts it
+       outside the [data-preview-tone] scope, so it re-declares the surface
+       tokens here and follows the OS scheme instead of the previewed app. */
+    #app-tooltip {
+      --fg: light-dark(#18181b, #fafafa);
+      --muted: light-dark(#52525b, #a1a1aa);
+      --muted-bg: light-dark(rgba(0, 0, 0, .06), rgba(255, 255, 255, .09));
+      --border: light-dark(rgba(0, 0, 0, .1), rgba(255, 255, 255, .12));
+      --surface: light-dark(rgba(255, 255, 255, .97), rgba(24, 24, 27, .97));
+
+      position: fixed;
+      z-index: 100;
+      width: min(320px, calc(100vw - 16px));
+      padding: 13px;
+      border: 1px solid color-mix(in srgb, var(--item-color) 55%, transparent);
+      border-radius: 11px;
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 18px 50px light-dark(rgba(0, 0, 0, .16), rgba(0, 0, 0, .34)),
+        0 2px 8px light-dark(rgba(0, 0, 0, .1), rgba(0, 0, 0, .25));
+      font-size: 12px;
+      line-height: 1.4;
+      user-select: text;
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+    }
+    #app-tooltip[hidden] {
+      display: none;
+    }
+    .app-tooltip__header {
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      align-items: center;
+      gap: 9px;
+    }
+    .app-tooltip__icon {
+      display: flex;
+      width: 30px;
+      height: 30px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid color-mix(in srgb, var(--item-color) 38%, transparent);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--item-color) 18%, transparent);
+      color: var(--item-color);
+    }
+    .app-tooltip__name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+    .app-tooltip__description {
+      margin-top: 9px;
+      color: var(--muted);
+    }
+    .app-tooltip__tags,
+    .app-tooltip__path,
+    .app-tooltip__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 9px;
+    }
+    .app-tooltip__tags span,
+    .app-tooltip__path span {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--muted-bg);
+      font-size: 10px;
+    }
+    .app-tooltip__path {
+      align-items: center;
+      padding-top: 9px;
+      border-top: 1px solid var(--border);
+    }
+    .app-tooltip__path b {
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .app-tooltip__store {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: baseline;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .app-tooltip__store code {
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: var(--muted-bg);
+      color: var(--fg);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+    }
+    .app-tooltip__updated {
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .app-tooltip__updated time {
+      color: var(--fg);
+      font-variant-numeric: tabular-nums;
+    }
+    .app-tooltip__action {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border: 1px solid color-mix(in srgb, var(--item-color) 32%, transparent);
+      border-radius: 7px;
+      background: color-mix(in srgb, var(--item-color) 14%, transparent);
+      color: color-mix(in srgb, var(--item-color) 88%, var(--fg));
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
+    }
+    .app-tooltip__action:hover,
+    .app-tooltip__action:focus-visible {
+      background: color-mix(in srgb, var(--item-color) 24%, transparent);
+    }
+    .app-tooltip__action--folder {
+      border-color: var(--border);
+      background: var(--muted-bg);
+      color: var(--fg);
+    }
+
+    /* An app's `children:` sub-pages. .app-group only exists when there are
+       any, so an app without children keeps the flat markup it always had. */
+    .child-row {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .child-row:hover,
+    .child-row.is-active {
+      color: var(--fg);
+    }
+
+    #sidebar-empty {
+      padding: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    #stage {
+      position: relative;
+      min-width: 0;
+      flex: 1;
+      background: var(--preview-bg);
+    }
+    #preview-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: transparent;
+    }
+    #preview-frame[hidden] {
+      display: none;
+    }
+    #preview-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+    #preview-appspace {
+      margin: 0;
+      color: var(--fg);
+      font-size: clamp(2rem, 6vw, 4.5rem);
+      letter-spacing: -.04em;
+    }
+    #preview-message {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+      font-size: 1rem;
+    }
+    #preview-message .icon {
+      width: 22px;
+      height: 22px;
+    }
+    #preview-empty[hidden] {
+      display: none;
+    }
+
+    #sidebar-toggle {
+      position: fixed;
+      z-index: 40;
+      bottom: var(--toggle-inset);
+      left: var(--toggle-inset);
+      display: flex;
+      width: var(--toggle-size);
+      height: var(--toggle-size);
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: var(--fg);
+      cursor: pointer;
+    }
+    #sidebar-toggle svg {
+      width: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+    #sidebar-backdrop {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      #sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: var(--sidebar-w);
+      }
+      #sidebar[data-width="wide2"] {
+        width: min(var(--sidebar-w2), calc(100vw - 2rem));
+      }
+      #sidebar[data-width="collapsed"] {
+        width: var(--sidebar-w);
+        transform: translateX(-110%);
+      }
+      #sidebar[data-width="collapsed"] > * {
+        display: flex;
+      }
+      #sidebar[data-width="collapsed"] #sidebar-tree {
+        display: flex;
+      }
+      #sidebar-backdrop {
+        position: fixed;
+        z-index: 15;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: rgba(0, 0, 0, .35);
+        backdrop-filter: blur(2px);
+      }
+      #sidebar-backdrop:not([hidden]) {
+        display: block;
+      }
+    }
+    </style>
+  </head>
+  <body id="page-body">
+    <!-- The icon sprite is fetched once and injected here. -->
+    <div id="icon-sprite" hidden aria-hidden="true"></div>
+
+    <div id="app">
+      <aside id="sidebar" class="glass" data-width="wide" data-indent="roomy">
+        <header id="sidebar-header">
+          <div id="root-switcher">
+            <button id="root-cycle" class="menu-btn" type="button"
+              aria-label="Next appspace">
+              <span id="root-icon"></span>
+              <span id="root-copy" class="grow">
+                <span id="root-name" class="truncate">Loading…</span>
+                <span id="root-description" class="truncate"></span>
+              </span>
+            </button>
+            <button id="appspace-lock" class="icon-button" type="button"
+              hidden aria-label="Next locked appspace" title="Next locked appspace">
+            </button>
+            <button id="root-menu-toggle" class="icon-button" type="button"
+              aria-haspopup="listbox" aria-expanded="false"
+              aria-controls="root-menu" title="Choose an appspace">
+              <svg class="icon" aria-hidden="true">
+                <use href="#mdi--unfold-more-horizontal"></use>
+              </svg>
+            </button>
+            <div id="root-menu" role="listbox" aria-label="Appspaces"
+              hidden></div>
+          </div>
+
+          <label id="search-box" for="search">
+            <svg class="icon" aria-hidden="true">
+              <use href="#mdi--magnify"></use>
+            </svg>
+            <input id="search" type="search"
+              placeholder="Search apps, tags, paths…" autocomplete="off"
+              spellcheck="false">
+          </label>
+
+          <nav id="sidebar-tabs" aria-label="Sidebar views">
+            <button id="tree-view" class="tab active" data-view="tree"
+              type="button" aria-label="App tree">
+              <svg class="icon" aria-hidden="true">
+                <use href="#solar--folder-bold-duotone"></use>
+              </svg>
+            </button>
+            <button id="recent-view" class="tab" data-view="recent"
+              type="button" aria-label="Recently opened">
+              <svg class="icon" aria-hidden="true">
+                <use href="#solar--history-bold-duotone"></use>
+              </svg>
+            </button>
+            <button id="updated-view" class="tab" data-view="updated"
+              type="button" aria-label="Recently updated">
+              <svg class="icon" aria-hidden="true">
+                <use href="#solar--calendar-bold-duotone"></use>
+              </svg>
+            </button>
+            <button id="expand-toggle" class="tab" type="button"
+              aria-label="Expand or collapse all (x)">
+              <svg class="icon" aria-hidden="true">
+                <use href="#lucide--chevrons-down-up"></use>
+              </svg>
+            </button>
+            <button id="more-options" class="tab" type="button"
+              aria-label="More" popovertarget="more-menu" aria-expanded="false">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <circle cx="5" cy="12" r="2"></circle>
+                <circle cx="12" cy="12" r="2"></circle>
+                <circle cx="19" cy="12" r="2"></circle>
+              </svg>
+            </button>
+          </nav>
+          <div id="more-menu" popover="auto">
+            <label for="use-folder-names">
+              <input id="use-folder-names" type="checkbox">
+              Use folder names
+            </label>
+          </div>
+        </header>
+
+        <nav id="sidebar-tree" aria-label="Apps"></nav>
+      </aside>
+
+      <main id="stage">
+        <iframe id="preview-frame" title="App preview"
+          src="about:blank" hidden></iframe>
+        <div id="preview-empty">
+          <h1 id="preview-appspace"></h1>
+          <p id="preview-message">
+            <svg class="icon" aria-hidden="true">
+              <use href="#mdi--arrow-left"></use>
+            </svg>
+            <span id="preview-instruction">Select an app on the left.</span>
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <button id="sidebar-backdrop" type="button" aria-label="Close sidebar"
+      tabindex="-1" hidden></button>
+    <div id="app-tooltip" role="tooltip" hidden></div>
+    <dialog id="help-dialog" aria-label="Keyboard shortcuts"></dialog>
+    <dialog id="appspace-auth" aria-label="Appspace password">
+      <form id="appspace-auth-form">
+        <h2 id="appspace-auth-title">Unlock</h2>
+        <p id="appspace-auth-copy">Enter the password for this appspace.</p>
+        <label for="appspace-auth-password">Password</label>
+        <input id="appspace-auth-password" type="password"
+          autocomplete="current-password" required>
+        <p id="appspace-auth-error" hidden role="alert"></p>
+        <div class="auth-actions">
+          <button type="button" id="appspace-auth-cancel">Cancel</button>
+          <button type="submit" id="appspace-auth-submit">Unlock</button>
+        </div>
+      </form>
+    </dialog>
+    <button id="sidebar-toggle" class="glass" type="button"
+      aria-label="Cycle sidebar size" title="Sidebar size (s)">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="4" width="18" height="16" rx="2"></rect>
+        <path d="M9 4v16"></path>
+      </svg>
+    </button>
+
+    <script type="module" src="/shell.js"></script>
+  </body>
+</html>

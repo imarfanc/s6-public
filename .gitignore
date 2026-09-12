@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+.vt/
+node_modules/
+_other/data/**
+!_other/data/README.md
+_other/generated/**
+!_other/generated/README.md
+_other/scratch/**
+!_other/scratch/README.md
+*.db
+*.db-wal
+*.db-shm
+.fuse_hidden*

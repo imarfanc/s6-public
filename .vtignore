@@ -1,0 +1,8 @@
+_other/
+.git
+.vt
+.env
+.env.*
+.vscode
+.DS_Store
+node_modules

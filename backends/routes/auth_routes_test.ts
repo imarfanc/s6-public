@@ -1,0 +1,66 @@
+import { assertEquals } from "@std/assert";
+import { handleRequest } from "./router.ts";
+
+function request(path: string, init: RequestInit = {}): Request {
+  return new Request(`http://localhost:8893${path}`, init);
+}
+
+Deno.test("discovery exposes exactly the public starter app", async () => {
+  const response = await handleRequest(request("/api/apps"));
+  assertEquals(response.status, 200);
+  const body = await response.json();
+  assertEquals(body.apps.map((app: { id: string }) => app.id), ["todo1"]);
+  assertEquals(
+    body.appspaces.map((space: { name: string; locked: boolean }) => ({
+      name: space.name,
+      locked: space.locked,
+    })),
+    [{ name: "Examples", locked: false }],
+  );
+  assertEquals(
+    body.appspaces.some((space: Record<string, unknown>) =>
+      "password_env" in space || "passwordEnv" in space
+    ),
+    false,
+  );
+});
+
+Deno.test("gallery and starter page are public", async () => {
+  for (const path of ["/", "/apps/todo1/", "/apps/todo1/index.html", "/shared/store.js"]) {
+    const response = await handleRequest(request(path));
+    assertEquals(response.status, 200, path);
+    await response.body?.cancel();
+  }
+});
+
+Deno.test("internal metadata and missing apps are not served", async () => {
+  for (
+    const path of [
+      "/apps/sections-metadata.yaml",
+      "/apps/_manifest.json",
+      "/apps/_templates/app.template.yaml",
+      "/apps/missing/",
+      "/.env",
+    ]
+  ) {
+    const response = await handleRequest(request(path));
+    assertEquals(response.status, 404, path);
+    await response.body?.cancel();
+  }
+});
+
+Deno.test("cross-origin requests are refused before handlers", async () => {
+  const response = await handleRequest(request("/api/apps", {
+    headers: { origin: "https://attacker.example" },
+  }));
+  assertEquals(response.status, 403);
+  assertEquals((await response.json()).error, "Cross-origin request");
+});
+
+Deno.test("same-origin and origin-less requests reach discovery", async () => {
+  for (const headers of [new Headers({ origin: "http://localhost:8893" }), new Headers()]) {
+    const response = await handleRequest(request("/api/apps", { headers }));
+    assertEquals(response.status, 200);
+    await response.body?.cancel();
+  }
+});

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "appspaces": [
+    {
+      "name": "Examples",
+      "icon": "lucide:app-window",
+      "color": "",
+      "locked": false,
+      "localOnly": false,
+      "sections": [
+        {
+          "name": "testing",
+          "sort_name": "testing",
+          "icon": "lucide:flask-conical",
+          "color": "",
+          "sections": []
+        }
+      ]
+    }
+  ],
+  "apps": [
+    {
+      "id": "todo1",
+      "name": "Todo",
+      "sort_name": "Todo",
+      "description": "A persistent todo list with All, Active, and Completed filters.",
+      "updated": "",
+      "icon": "lucide:list-checks",
+      "color": "#c9007e",
+      "appspace": "Examples",
+      "sections": [
+        "testing"
+      ],
+      "tags": [
+        "productivity"
+      ],
+      "path": "todo1",
+      "url": "/apps/todo1/index.html",
+      "store": "todo1",
+      "db": "",
+      "children": [],
+      "aliases": [],
+      "backend": "",
+      "status": "active"
+    }
+  ]
+}

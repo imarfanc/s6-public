@@ -1,0 +1,30 @@
+# App manifest template. Copy this file to an app directory as `app.yaml`.
+# Replace the values below with metadata for the new app.
+
+id: replace-me # Stable #app= deep link. Required.
+status: active # active | parked | reference
+
+name: Replace me # Sidebar label. Required.
+sort_name: Replace me # Sort name. Optional; falls back to name.
+description: "" # Extra search terms, shown in matching.
+# `updated:` is derived from git when the manifest is built. Do not set it.
+
+icon: lucide:app-window # Iconify icon name.
+color: "#6fd6c4" # Hex accent; tints the sidebar while the app is open.
+
+appspace: local_Apps # Must match an `appspaces:` name in sections-metadata.yaml.
+# Sections form an ordered path: each item is nested under the previous item.
+sections:
+  - one
+tags: [] # Extra search terms.
+
+# store: todo1 # Namespace for /api/data/ and for database tables. Set it if
+# the app saves anything, so a folder rename does not orphan the data.
+
+# db: v1 # Schema generation for an app with tables. Leave out for an app with
+# no database. Set it and add schema.sql + queries.sql in web/; copy them from
+# schema.template.sql and queries.template.sql.
+
+entry: index.html # Entry file served for the app.
+children: [] # Extra entry points in web/, listed as rows under the app.
+# aliases: # Retired #app= ids that still resolve to this app. Optional.
