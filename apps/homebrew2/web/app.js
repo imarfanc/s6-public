@@ -103,8 +103,9 @@ function brewLink(i) {
 }
 
 function icon(i) {
-  const hasIcon = /^https:\/\//.test(i.icon || '');
-  return `<span class="package-icon${hasIcon ? '' : ' missing'}" aria-hidden="true">${
+  const hasIcon = /^https?:\/\//.test(i.icon || '');
+  const fit = i.icon_fit === 'cover' ? ' cover' : '';
+  return `<span class="package-icon${hasIcon ? fit : ' missing'}" aria-hidden="true">${
     hasIcon ? `<img src="${escape(i.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''
   }<span class="icon-fallback">${i.kind === 'formula' || i.kind === 'script' ? '&gt;_' : '◇'}</span></span>`;
 }

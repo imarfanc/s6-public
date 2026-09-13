@@ -305,6 +305,14 @@ casks:
     description: "Online multiplayer game platform"
     url: "https://www.roblox.com/"
     brew_url: "https://formulae.brew.sh/cask/roblox"
+  - name: "robloxstudio"
+    version: "0.738.0.7381393,08819f7af43f4ed6"
+    description: "Roblox IDE to build your experiences"
+    url: "https://create.roblox.com/"
+    brew_url: "https://formulae.brew.sh/cask/robloxstudio"
+    updated: "2026-09-13"
+    installs_365d: 1416
+    icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/robloxstudio.png"
   - name: "setapp"
     priority: 2
     version: "3.55.1,157,1788525316"

@@ -2,9 +2,24 @@ schema_version: 1
 formulae:
   - name: "bat"
     version: "0.26.1"
+    description: "Clone of cat(1) with syntax highlighting and Git integration"
+    url: "https://github.com/sharkdp/bat"
+    brew_url: "https://formulae.brew.sh/formula/bat"
+    updated: "2026-09-13"
+    installs_365d: 205813
+    icon: "https://raw.githubusercontent.com/sharkdp/bat/master/doc/logo-header.svg"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "bmon"
-    version: "4.0_2"
+    version: "4.0"
+    description: "Interface bandwidth monitor"
+    url: "https://github.com/tgraf/bmon"
+    brew_url: "https://formulae.brew.sh/formula/bmon"
+    updated: "2026-09-13"
+    installs_365d: 1297
+    icon: "https://github.com/tgraf/bmon/raw/gh-pages/images/shot3.png"
+    icon_fit: "cover"
     dependency: false
   - name: "brotli"
     version: "1.2.0"
@@ -24,13 +39,35 @@ formulae:
     dependency: false
     priority: -1
   - name: "fd"
-    version: "10.4.2"
+    version: "10.5.0"
+    description: "Simple, fast and user-friendly alternative to find"
+    url: "https://github.com/sharkdp/fd"
+    brew_url: "https://formulae.brew.sh/formula/fd"
+    updated: "2026-09-13"
+    installs_365d: 220167
+    icon: "https://raw.githubusercontent.com/sharkdp/fd/master/doc/screencast.svg"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "ffmpeg"
-    version: "8.1.2_1"
+    version: "9.0.1"
+    description: "Play, record, convert, and stream select audio and video codecs"
+    url: "https://ffmpeg.org/"
+    brew_url: "https://formulae.brew.sh/formula/ffmpeg"
+    updated: "2026-09-13"
+    installs_365d: 1924125
+    icon: "https://ffmpeg.org/img/dascha-ffmpeg-ampere.png"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "figlet"
     version: "2.2.5"
+    description: "Banner-like program prints strings as ASCII art"
+    url: "https://www.figlet.org/"
+    brew_url: "https://formulae.brew.sh/formula/figlet"
+    updated: "2026-09-13"
+    installs_365d: 15037
+    priority: 1
     dependency: false
   - name: "fmt"
     version: "12.2.0"
@@ -39,13 +76,27 @@ formulae:
     version: "1.0.16"
     dependency: false
   - name: "fzf"
-    version: "0.74.2"
+    version: "0.74.4"
+    description: "Command-line fuzzy finder written in Go"
+    url: "https://junegunn.github.io/fzf/"
+    brew_url: "https://formulae.brew.sh/formula/fzf"
+    updated: "2026-09-13"
+    installs_365d: 581628
+    icon: "https://junegunn.github.io/fzf/images/fzf-color.png"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "gettext"
     version: "1.0"
     dependency: false
   - name: "gh"
-    version: "2.97.0"
+    version: "2.100.0"
+    description: "GitHub command-line tool"
+    url: "https://cli.github.com/"
+    brew_url: "https://formulae.brew.sh/formula/gh"
+    updated: "2026-09-13"
+    installs_365d: 2954015
+    priority: 1
     dependency: false
   - name: "glow"
     version: "2.1.2"
@@ -53,6 +104,7 @@ formulae:
   - name: "go"
     version: "1.26.5"
     dependency: false
+    priority: -1
   - name: "gum"
     version: "0.17.0"
     dependency: false
@@ -67,6 +119,14 @@ formulae:
     dependency: false
   - name: "just"
     version: "1.58.0"
+    description: "Handy way to save and run project-specific commands"
+    url: "https://just.systems"
+    brew_url: "https://formulae.brew.sh/formula/just"
+    updated: "2026-09-13"
+    installs_365d: 412899
+    icon: "https://raw.githubusercontent.com/casey/just/master/etc/screenshot.png"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "lame"
     version: "4.0"
@@ -76,6 +136,12 @@ formulae:
     dependency: false
   - name: "lsd"
     version: "1.2.0"
+    description: "Clone of ls with colorful output, file type icons, and more"
+    url: "https://github.com/lsd-rs/lsd"
+    brew_url: "https://formulae.brew.sh/formula/lsd"
+    updated: "2026-09-13"
+    installs_365d: 22424
+    priority: 1
     dependency: false
   - name: "lz4"
     version: "1.10.0"
@@ -105,13 +171,29 @@ formulae:
     dependency: false
   - name: "toilet"
     version: "0.3"
+    description: "Color-based alternative to figlet (uses libcaca)"
+    url: "http://caca.zoy.org/wiki/toilet"
+    brew_url: "https://formulae.brew.sh/formula/toilet"
+    updated: "2026-09-13"
+    installs_365d: 2023
+    icon: "http://caca.zoy.org/static/toilet-sample.png"
+    icon_fit: "cover"
+    priority: 1
     dependency: false
   - name: "tree"
     version: "2.3.2"
+    description: "Display directories as trees (with optional color/HTML output)"
+    url: "https://oldmanprogrammer.net/source.php?dir=projects/tree"
+    brew_url: "https://formulae.brew.sh/formula/tree"
+    updated: "2026-09-13"
+    installs_365d: 384195
+    icon: "https://oldmanprogrammer.net/img/logo.png"
+    priority: 1
     dependency: false
   - name: "uv"
     version: "0.12.3"
     dependency: false
+    priority: -1
   - name: "wacli"
     version: "0.16.0"
     dependency: false
