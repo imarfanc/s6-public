@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="icon-sprite" hidden aria-hidden="true"></div>
   <aside class="rail">
     <a class="brand" href="#install"><span class="brand-icon">h₂</span> homebrew2</a>
     <p class="overline">YOUR PACKAGE LIBRARY</p>
@@ -18,7 +19,7 @@
     <div class="rail-note">
       <span class="dot"></span> Saved snapshot
       <strong id="snapshot-date">—</strong>
-      <p>A reference library of your tools.<br>Not a live scan of this Mac.</p>
+      <p>A reference library of your tools.<br>Use Check all installed for live Homebrew status.</p>
       <details id="sources"><summary>Download source YAML</summary></details>
     </div>
   </aside>
@@ -32,6 +33,11 @@
       <span class="snapshot" id="snapshot"></span>
     </header>
     <section id="stats" aria-label="Package totals"></section>
+    <div class="installed-toolbar">
+      <button id="check-installed" class="ghost">Check all installed</button>
+      <label class="installed-filter" title="Only Homebrew packages confirmed missing in the last check"><input id="not-installed-only" type="checkbox" disabled> Not installed only</label>
+      <p id="installed-status" role="status">Check all casks and formulae on the Mac running this server.</p>
+    </div>
     <div class="toolbar">
       <label class="search">
         <span aria-hidden="true">⌕</span>
@@ -51,7 +57,7 @@
       <aside id="command-panel" hidden>
         <p class="overline">COMMAND PREVIEW</p>
         <h2 id="panel-title">Nothing selected</h2>
-        <textarea id="command" readonly aria-label="Installation command" placeholder="Pick a package to see its command"></textarea>
+        <textarea id="command" readonly aria-label="Terminal command" placeholder="Pick a package to see its command"></textarea>
         <button id="copy-command" class="primary" disabled>Copy command</button>
         <p id="status" role="status"></p>
         <ul class="panel-note">

@@ -2,6 +2,9 @@ schema_version: 1
 appspaces:
   - name: Examples
     icon: lucide:app-window
+  - name: Local
+    icon: lucide:monitor
+    local_only: true
 sections:
   - name: testing
     icon: lucide:flask-conical

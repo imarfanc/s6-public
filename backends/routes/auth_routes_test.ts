@@ -15,7 +15,7 @@ Deno.test("discovery exposes the public apps", async () => {
       name: space.name,
       locked: space.locked,
     })),
-    [{ name: "Examples", locked: false }],
+    [{ name: "Examples", locked: false }, { name: "Local", locked: false }],
   );
   assertEquals(
     body.appspaces.some((space: Record<string, unknown>) =>
@@ -73,6 +73,21 @@ Deno.test("same-origin and origin-less requests reach discovery", async () => {
   for (const headers of [new Headers({ origin: "http://localhost:8893" }), new Headers()]) {
     const response = await handleRequest(request("/api/apps", { headers }));
     assertEquals(response.status, 200);
+    await response.body?.cancel();
+  }
+});
+
+Deno.test("Homebrew API is local-only and rejects foreign origins", async () => {
+  for (
+    const request of [
+      new Request("https://example.com/api/apps/homebrew2/installed"),
+      new Request("http://localhost:8893/api/apps/homebrew2/installed", {
+        headers: { origin: "https://attacker.example" },
+      }),
+    ]
+  ) {
+    const response = await handleRequest(request);
+    assertEquals(response.status, 403);
     await response.body?.cancel();
   }
 });

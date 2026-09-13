@@ -25,7 +25,10 @@ import { handleSqliteInspect } from "./sqlite-inspect.ts";
 import { handleStatic } from "./static.ts";
 import { methodNotAllowed } from "../shared/http.ts";
 
+import { handleHomebrew } from "../../apps/homebrew2/server/route.ts";
+
 const HANDLERS = [
+  handleHomebrew,
   handleApps,
   handleData,
   handleDb,

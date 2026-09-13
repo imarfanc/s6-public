@@ -9,17 +9,26 @@
       "localOnly": false,
       "sections": [
         {
-          "name": "Developer Tools",
-          "sort_name": "Developer Tools",
-          "icon": "ph:terminal-window",
-          "color": "#6fd6c4",
-          "sections": []
-        },
-        {
           "name": "testing",
           "sort_name": "testing",
           "icon": "lucide:flask-conical",
           "color": "",
+          "sections": []
+        }
+      ]
+    },
+    {
+      "name": "Local",
+      "icon": "lucide:monitor",
+      "color": "",
+      "locked": false,
+      "localOnly": true,
+      "sections": [
+        {
+          "name": "Developer Tools",
+          "sort_name": "Developer Tools",
+          "icon": "ph:terminal-window",
+          "color": "#6fd6c4",
           "sections": []
         }
       ]
@@ -30,11 +39,11 @@
       "id": "homebrew2",
       "name": "homebrew2",
       "sort_name": "homebrew2",
-      "description": "Browse a Homebrew inventory snapshot and copy installation commands.",
-      "updated": "",
+      "description": "Browse packages, check local Homebrew installation status, and copy install commands.",
+      "updated": "2026-09-13",
       "icon": "lucide:box",
       "color": "#537b67",
-      "appspace": "Examples",
+      "appspace": "Local",
       "sections": [
         "Developer Tools"
       ],
@@ -50,7 +59,7 @@
       "db": "",
       "children": [],
       "aliases": [],
-      "backend": "",
+      "backend": "apps/homebrew2/server/route.ts",
       "status": "active"
     },
     {

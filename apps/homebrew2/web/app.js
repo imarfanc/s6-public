@@ -70,9 +70,10 @@ const compareItems = (a, b) => {
 };
 function priorityGroups(rows) {
   return [
-    ['First picks', rows.filter(isFirstPick)],
-    ['Everything else', rows.filter((i) => !isFirstPick(i) && !isLastPick(i))],
-    ['Last picks', rows.filter(isLastPick)],
+    ...[...new Set(rows.filter(isFirstPick).map((i) => i.priority))].sort((a, b) => a - b)
+      .map((priority) => [`Priority ${priority}`, rows.filter((i) => i.priority === priority)]),
+    ['No priority', rows.filter((i) => !isFirstPick(i) && !isLastPick(i))],
+    ['Priority last', rows.filter(isLastPick)],
   ].filter(([, group]) => group.length);
 }
 
@@ -80,6 +81,7 @@ function visible() {
   const q = $('#search').value.trim().toLowerCase();
   const group = groupOn() ? $('#group').value : 'all';
   return items.filter((i) => inView(i) && (category === 'all' || i.kind === category) &&
+    (!$('#not-installed-only').checked || (installed && brewKind(i) && !installed[brewKind(i)].has(i.name.split('/').pop()))) &&
     (group === 'all' || (i.kind === 'cask' && (i.group || 'other') === group)) &&
     `${i.name} ${i.version || ''} ${i.description || ''} ${i.group || ''} ${i.url || ''} ${command(i) || ''}`.toLowerCase().includes(q)).sort(compareItems);
 }
@@ -138,6 +140,72 @@ function batch(rows) {
   }).filter(Boolean).join('\n');
 }
 
+const INSTALLED_STORAGE_KEY = 'homebrew2.installed.v1';
+let installed = null, installedCheckedAt = null;
+function applyInstalled(data) {
+  if (!data || !Array.isArray(data.casks) || !Array.isArray(data.formulae) ||
+      ![...data.casks, ...data.formulae].every((name) => typeof name === 'string') ||
+      typeof data.checkedAt !== 'string' || !Number.isFinite(Date.parse(data.checkedAt))) throw Error('Invalid Homebrew response.');
+  installed = Object.fromEntries(['casks', 'formulae'].map((kind) => [kind, new Set(data[kind].map((name) => name.split('/').pop()))]));
+  installedCheckedAt = data.checkedAt;
+  $('#not-installed-only').disabled = false;
+}
+function installedSummary() {
+  return `Last checked ${new Date(installedCheckedAt).toLocaleString()}: ${installed.casks.size} casks and ${installed.formulae.size} formulae installed on this server.`;
+}
+try {
+  const saved = localStorage.getItem(INSTALLED_STORAGE_KEY);
+  if (saved) {
+    applyInstalled(JSON.parse(saved));
+    $('#installed-status').textContent = `${installedSummary()} Saved results — recheck to refresh.`;
+  }
+} catch {
+  $('#installed-status').textContent = 'Saved status unavailable. Check all installed to load current results.';
+}
+$('#not-installed-only').addEventListener('change', () => { clearPreview(); render(); });
+const brewKind = (i) => i.kind === 'cask' ? 'casks' : ['formula', 'dependency'].includes(i.kind) ? 'formulae' : null;
+function installedBadge(i) {
+  const kind = brewKind(i);
+  if (!kind) return '';
+  if (!installed) return '<span class="install-state">Not checked</span>';
+  const name = i.name.split('/').pop();
+  return installed[kind].has(name)
+    ? '<span class="install-state is-installed"><svg aria-hidden="true" width="16" height="16"><use href="#lucide--check"></use></svg>Installed</span>'
+    : '<span class="install-state">Not installed</span>';
+}
+
+async function checkInstalled() {
+  const button = $('#check-installed'), status = $('#installed-status');
+  button.disabled = true;
+  button.textContent = 'Checking…';
+  status.textContent = 'Reading casks and formulae from Homebrew on this server…';
+  try {
+    const response = await fetch('/api/apps/homebrew2/installed', { cache: 'no-store', signal: AbortSignal.timeout(20000) });
+    const data = await response.json();
+    if (!response.ok) throw Error(data.error || 'Could not check Homebrew.');
+    applyInstalled(data);
+    status.textContent = installedSummary();
+    try {
+      localStorage.setItem(INSTALLED_STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      status.textContent += ' Could not save in this browser; results are available for this session.';
+    }
+  } catch (error) {
+    status.textContent = `${error.name === 'TimeoutError' ? 'The check timed out.' : error.message} ${installed ? `Showing previous results. ${installedSummary()}` : 'Status is unknown.'} Try again.`;
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Check all installed';
+    render();
+  }
+}
+
+// Inline the vendored Iconify sprite so checkmarks work without a CDN.
+fetch('/shared/icons.svg').then((response) => {
+  if (!response.ok) throw Error('Icon sprite unavailable');
+  return response.text();
+}).then((svg) => { $('#icon-sprite').innerHTML = svg; }).catch(console.error);
+$('#check-installed').addEventListener('click', checkInstalled);
+
 function card(i) {
   const def = KINDS[i.kind], cmd = command(i);
   const projectLabel = i.kind === 'setapp' ? 'Open in Setapp' : i.kind === 'mas' ? 'View in App Store' : 'Project';
@@ -147,7 +215,7 @@ function card(i) {
   return `<article class="package-card" data-id="${i.id}"${selected === i.id ? ' aria-current' : ''}>
     <div class="card-top"><span class="package-title">${icon(i)}<span class="package-name">${escape(i.name)}</span></span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
     <p class="detail">${escape(i.description || (i.version ? `v${i.version}` : def.fallback))}${i.group ? ` <span class="chip">${escape(i.group)}</span>` : ''}</p>
-    ${metadata(i)}<div class="card-actions">${actions}</div></article>`;
+    ${metadata(i)}${installedBadge(i)}<div class="card-actions">${actions}</div></article>`;
 }
 
 function render() {
@@ -175,15 +243,15 @@ function render() {
   }
   if (!install) {
     $('#results').innerHTML = `<div class="table-wrap"><table><thead><tr><th scope="col">PACKAGE</th><th scope="col">SAVED VERSION</th><th scope="col">TYPE</th><th scope="col">DETAILS</th></tr></thead><tbody>${
-      priorityGroups(rows).map(([label, group]) => `<tr class="priority-heading"><th colspan="4" scope="rowgroup">${label}</th></tr>` + group.map((i) => `<tr><td><span class="package-title">${icon(i)}<span>${escape(i.name)}</span></span></td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')).join('')
+      priorityGroups(rows).map(([label, group]) => `<tr class="priority-heading"><th colspan="4" scope="rowgroup">${label} <span class="group-count">${group.length}</span></th></tr>` + group.map((i) => `<tr><td><span class="package-title">${icon(i)}<span>${escape(i.name)}</span></span>${installedBadge(i)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)} </td></tr>`).join('')).join('')
     }</tbody></table></div>`;
   } else {
     const copyable = rows.filter(command).length;
-    $('#results').innerHTML = `<div class="copy-set"><h2>${category === 'all' ? 'Installable collection' : KINDS[category].label}</h2><button class="ghost" id="copy-visible"${copyable ? '' : ' disabled'}>Copy ${copyable} as one batch</button></div>${priorityGroups(rows).map(([label, group]) => `<section class="priority-group"><h3>${label}</h3><div class="cards">${group.map(card).join('')}</div></section>`).join('')}`;
+    $('#results').innerHTML = `<div class="copy-set"><h2>${category === 'all' ? 'Installable collection' : KINDS[category].label}</h2><button class="ghost" id="copy-visible"${copyable ? '' : ' disabled'}>Copy ${copyable} as one batch</button></div>${priorityGroups(rows).map(([label, group]) => `<section class="priority-group"><h3>${label} <span class="group-count">${group.length}</span></h3><div class="cards">${group.map(card).join('')}</div></section>`).join('')}`;
   }
 }
 
-function resetFilters() { $('#search').value = ''; $('#group').value = 'all'; category = 'all'; render(); }
+function resetFilters() { $('#not-installed-only').checked = false; $('#search').value = ''; $('#group').value = 'all'; category = 'all'; render(); }
 
 document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { location.hash = b.dataset.view; }));
 window.addEventListener('hashchange', () => { view = location.hash === '#inventory' ? 'inventory' : 'install'; category = 'all'; render(); });
