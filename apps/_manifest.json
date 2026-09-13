@@ -9,6 +9,13 @@
       "localOnly": false,
       "sections": [
         {
+          "name": "Developer Tools",
+          "sort_name": "Developer Tools",
+          "icon": "ph:terminal-window",
+          "color": "#6fd6c4",
+          "sections": []
+        },
+        {
           "name": "testing",
           "sort_name": "testing",
           "icon": "lucide:flask-conical",
@@ -20,11 +27,38 @@
   ],
   "apps": [
     {
+      "id": "homebrew2",
+      "name": "homebrew2",
+      "sort_name": "homebrew2",
+      "description": "Browse a Homebrew inventory snapshot and copy installation commands.",
+      "updated": "",
+      "icon": "lucide:box",
+      "color": "#537b67",
+      "appspace": "Examples",
+      "sections": [
+        "Developer Tools"
+      ],
+      "tags": [
+        "homebrew",
+        "packages",
+        "inventory",
+        "install"
+      ],
+      "path": "homebrew2",
+      "url": "/apps/homebrew2/index.html",
+      "store": "",
+      "db": "",
+      "children": [],
+      "aliases": [],
+      "backend": "",
+      "status": "active"
+    },
+    {
       "id": "todo1",
       "name": "Todo",
       "sort_name": "Todo",
       "description": "A persistent todo list with All, Active, and Completed filters.",
-      "updated": "",
+      "updated": "2026-09-12",
       "icon": "lucide:list-checks",
       "color": "#c9007e",
       "appspace": "Examples",

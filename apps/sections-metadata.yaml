@@ -5,3 +5,6 @@ appspaces:
 sections:
   - name: testing
     icon: lucide:flask-conical
+  - name: "Developer Tools"
+    icon: "ph:terminal-window"
+    color: "#6fd6c4"

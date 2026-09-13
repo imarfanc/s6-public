@@ -1,0 +1,10 @@
+id: homebrew2
+name: homebrew2
+status: active
+description: Browse a Homebrew inventory snapshot and copy installation commands.
+icon: lucide:box
+color: "#537b67"
+appspace: Examples
+sections:
+  - Developer Tools
+tags: [homebrew, packages, inventory, install]

@@ -1,0 +1,62 @@
+{
+  // ╭─────────────────────────── UI Layout ────────────────────────────╮
+  // "window.zoomLevel": -1,    // Scale entire UI (including explorer font)
+  "window.zoomLevel": 0, // Scale entire UI (including explorer font)
+  // "window.zoomLevel": 1,    // Scale entire UI (including explorer font)
+  // "workbench.editor.showTabs": "none",
+  "window.commandCenter": true,
+  "workbench.activityBar.location": "top",
+  "workbench.secondarySideBar.showLabels": false,
+  "workbench.panel.showLabels": false,
+  "explorer.confirmDelete": false,
+  "explorer.confirmPasteNative": false,
+  "explorer.confirmDragAndDrop": false,
+
+  // ╭────────── Icons ──────────╮
+  "workbench.iconTheme": "material-icon-theme",
+  "material-icon-theme.activeIconPack": "none",
+  "material-icon-theme.folders.associations": {
+    "docs2": "Wakatime"
+  },
+
+  // ╭──────────────────────── Editor Configuration ────────────────────╮
+  // "editor.fontSize": 10,
+  "editor.fontSize": 12,
+  // "editor.fontSize": 14,
+  "editor.fontFamily": "Hack Nerd Font Mono",
+  "editor.accessibilitySupport": "off",
+  "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "file",
+  "editor.defaultFormatter": "denoland.vscode-deno",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "diffEditor.hideUnchangedRegions.enabled": true,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+
+  // ╭──────────────────────── Terminal Configuration ────────────────────╮
+  "terminal.integrated.lineHeight": 1,
+  // "terminal.integrated.fontSize": 10,
+  "terminal.integrated.fontSize": 12,
+  // "terminal.integrated.fontSize": 14,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.tabs.location": "left",
+  "terminal.integrated.tabs.hideCondition": "never",
+  "terminal.integrated.fontFamily": "MesloLGS Nerd Font",
+
+  // ╭──────────────────────── Git Configuration ────────────────────╮
+  "git.enableSmartCommit": false,
+  "git.autofetch": true,
+
+  // ╭──────────────────────── Theme ────────────────────╮
+  // "workbench.preferredDarkColorTheme": "Red",
+  // "workbench.preferredLightColorTheme": "Red",
+  "workbench.preferredDarkColorTheme": "Kimbie Dark",
+  "workbench.preferredLightColorTheme": "Kimbie Dark",
+  // "workbench.preferredDarkColorTheme": "Solarized Dark",
+  // "workbench.preferredLightColorTheme": "Solarized Light",
+  // "workbench.preferredDarkColorTheme": "Tomorrow Night Blue",
+  // "workbench.preferredLightColorTheme": "Tomorrow Night Blue",
+  "workbench.colorCustomizations": {}
+}
+// ╰───────────────────────────────────────────────────────────────────╯

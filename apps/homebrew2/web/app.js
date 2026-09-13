@@ -1,0 +1,183 @@
+const $ = (s) => document.querySelector(s);
+
+// One entry per top-level YAML section. `command` returns a shell line, or null when the
+// source is a link (Setapp, DMG) rather than something a terminal can install.
+const KINDS = {
+  formula: { section: 'formulae', label: 'Formulae', one: 'Formula', fallback: 'Command-line package', command: (i) => `brew install ${i.name}`, batch: (s) => `brew install ${s.map((i) => i.name).join(' ')}` },
+  cask: { section: 'casks', label: 'Casks', one: 'Cask', fallback: 'Desktop app or font', command: (i) => `brew install --cask ${i.name}`, batch: (s) => `brew install --cask ${s.map((i) => i.name).join(' ')}` },
+  dependency: { label: 'Dependencies', one: 'Dependency', fallback: 'Supporting library', install: false },
+  mas: { section: 'mas', label: 'App Store', one: 'App Store', fallback: 'Mac App Store app', command: (i) => i.id ? `mas install ${i.id}` : null, batch: (s) => { const ids = s.filter((i) => i.id).map((i) => i.id); return ids.length ? `mas install ${ids.join(' ')}` : null; } },
+  setapp: { section: 'setapp', label: 'Setapp', one: 'Setapp', fallback: 'Setapp subscription app', link: 'Open in Setapp' },
+  dmg: { section: 'dmgs', label: 'DMG', one: 'DMG', fallback: 'Direct download' },
+  script: { section: 'scripts', label: 'Scripts', one: 'Vendor script', fallback: 'Install script', inventory: false, batch: (s) => s.map((i) => i.command).join('\n') },
+};
+const SECTIONS = Object.fromEntries(Object.entries(KINDS).filter(([, k]) => k.section).map(([key, k]) => [k.section, key]));
+
+let items = [], view = location.hash === '#inventory' ? 'inventory' : 'install', category = 'all', selected = null;
+const escape = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function parse(text) {
+  let kind, item;
+  const rows = [];
+  const date = text.match(/captured on (\d{4}-\d{2}-\d{2})/)?.[1];
+  for (const line of text.split('\n')) {
+    const section = line.match(/^(\w+):\s*$/);
+    if (section) { kind = SECTIONS[section[1]]; item = null; if (!kind) console.warn(`Unknown section: ${section[1]}`); continue; }
+    if (!kind) continue;
+    const start = line.match(/^  - name: (.+)$/);
+    if (start) { item = { name: JSON.parse(start[1]), kind }; rows.push(item); continue; }
+    const field = line.match(/^    (\w+): (.+)$/);
+    if (field && item) item[field[1]] = JSON.parse(field[2]);
+  }
+  if (!rows.length) throw Error('Empty inventory');
+  return { date, rows: rows.map((i, id) => ({ ...i, id, kind: i.dependency ? 'dependency' : i.kind })) };
+}
+
+const command = (i) => i.command || KINDS[i.kind].command?.(i) || null;
+const inView = (i) => view === 'inventory' ? KINDS[i.kind].inventory !== false : KINDS[i.kind].install !== false;
+const kindsInView = () => Object.keys(KINDS).filter((k) => items.some((i) => i.kind === k && inView(i)));
+const groupOn = () => category === 'all' || category === 'cask';
+
+function visible() {
+  const q = $('#search').value.trim().toLowerCase();
+  const group = groupOn() ? $('#group').value : 'all';
+  return items.filter((i) => inView(i) && (category === 'all' || i.kind === category) &&
+    (group === 'all' || (i.kind === 'cask' && (i.group || 'other') === group)) &&
+    `${i.name} ${i.version || ''} ${i.description || ''} ${i.group || ''} ${i.url || ''} ${command(i) || ''}`.toLowerCase().includes(q));
+}
+
+function link(i, text = 'Project') {
+  return /^https?:\/\//.test(i.url || '') ? `<a href="${escape(i.url)}" target="_blank" rel="noreferrer" aria-label="${escape(text)}: ${escape(i.name)}">${escape(text)} ↗</a>` : '';
+}
+
+function downloadLink(i) {
+  return /^https?:\/\//.test(i.download || '')
+    ? `<a class="primary small" href="${escape(i.download)}" aria-label="Download ${escape(i.name)} DMG">Download DMG ↗</a>`
+    : '';
+}
+
+function brewLink(i) {
+  return /^https?:\/\//.test(i.brew_url || '')
+    ? `<a href="${escape(i.brew_url)}" target="_blank" rel="noreferrer" aria-label="View ${escape(i.name)} on Homebrew Formulae">Brew ↗</a>`
+    : '';
+}
+
+function preview(i, text = command(i)) {
+  selected = i?.id ?? null;
+  $('#panel-title').textContent = i ? i.name : 'Visible set';
+  $('#command').value = text || '';
+  $('#copy-command').disabled = !text;
+  $('#status').textContent = text ? 'Ready to copy.' : '';
+  document.querySelectorAll('.package-card').forEach((c) => c.toggleAttribute('aria-current', Number(c.dataset.id) === selected));
+}
+
+function clearPreview() {
+  selected = null;
+  $('#panel-title').textContent = 'Nothing selected';
+  $('#command').value = '';
+  $('#copy-command').disabled = true;
+  $('#status').textContent = '';
+}
+
+async function copy(text, i) {
+  preview(i, text);
+  try { await navigator.clipboard.writeText(text); $('#status').textContent = 'Copied to clipboard.'; }
+  catch { $('#command').focus(); $('#command').select(); $('#status').textContent = 'Clipboard unavailable. Copy the selected text manually.'; }
+}
+
+function batch(rows) {
+  return Object.entries(KINDS).map(([k, def]) => {
+    const set = rows.filter((i) => i.kind === k && command(i));
+    return set.length && def.batch ? def.batch(set) : set.map(command).join('\n');
+  }).filter(Boolean).join('\n');
+}
+
+function card(i) {
+  const def = KINDS[i.kind], cmd = command(i);
+  const projectLabel = i.kind === 'setapp' ? 'Open in Setapp' : i.kind === 'mas' ? 'View in App Store' : 'Project';
+  const actions = cmd
+    ? `<button class="primary small" data-copy="${i.id}" aria-label="Copy ${escape(i.name)} command">Copy</button><button class="ghost small" data-preview="${i.id}" aria-label="Preview ${escape(i.name)} command">Preview</button>${brewLink(i)}${link(i, projectLabel)}`
+    : `${i.kind === 'dmg' ? downloadLink(i) : ''}${link(i, i.kind === 'setapp' ? 'Open in Setapp' : 'Project')}` || '<span class="detail">No link yet</span>';
+  return `<article class="package-card" data-id="${i.id}"${selected === i.id ? ' aria-current' : ''}>
+    <div class="card-top"><span class="package-name">${escape(i.name)}</span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
+    <p class="detail">${escape(i.description || (i.version ? `v${i.version}` : def.fallback))}${i.group ? ` <span class="chip">${escape(i.group)}</span>` : ''}</p>
+    <div class="card-actions">${actions}</div></article>`;
+}
+
+function render() {
+  const install = view === 'install';
+  document.body.classList.toggle('install', install);
+  document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+  $('#eyebrow').textContent = install ? '01 / INSTALL APPS' : '02 / THE COLLECTION';
+  $('#title').textContent = install ? 'Your next setup starts here.' : 'A place for every package.';
+  $('#intro').textContent = install ? 'Find a tool. Copy the command. Take it to your terminal.' : 'The tools, desktop apps, and dependencies in your saved inventory.';
+  $('#command-panel').hidden = !install;
+
+  const kinds = kindsInView();
+  if (!kinds.includes(category)) category = 'all';
+  const count = (k) => items.filter((i) => i.kind === k && inView(i)).length;
+  $('#stats').innerHTML = [['Total', kinds.reduce((n, k) => n + count(k), 0)], ...kinds.map((k) => [KINDS[k].label, count(k)])]
+    .map(([label, n]) => `<div class="stat"><strong>${n}</strong><span>${label}</span></div>`).join('');
+  $('#categories').innerHTML = ['all', ...kinds].map((k) => `<button data-category="${k}" aria-pressed="${category === k}">${k === 'all' ? 'All' : KINDS[k].label}</button>`).join('');
+  $('#group').disabled = !groupOn();
+
+  const rows = visible();
+  $('#count').textContent = `${rows.length} ${install ? 'shown' : 'packages'}`;
+  if (!rows.length) {
+    $('#results').innerHTML = '<div class="empty"><h2>No matching packages</h2><p>Try another search or reset your filters.</p><button class="ghost" id="reset">Reset filters</button></div>';
+    return;
+  }
+  if (!install) {
+    $('#results').innerHTML = `<div class="table-wrap"><table><thead><tr><th scope="col">PACKAGE</th><th scope="col">SAVED VERSION</th><th scope="col">TYPE</th><th scope="col">DETAILS</th></tr></thead><tbody>${
+      rows.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')
+    }</tbody></table></div>`;
+  } else {
+    const copyable = rows.filter(command).length;
+    $('#results').innerHTML = `<div class="copy-set"><h2>${category === 'all' ? 'Installable collection' : KINDS[category].label}</h2><button class="ghost" id="copy-visible"${copyable ? '' : ' disabled'}>Copy ${copyable} as one batch</button></div><div class="cards">${rows.map(card).join('')}</div>`;
+  }
+}
+
+function resetFilters() { $('#search').value = ''; $('#group').value = 'all'; category = 'all'; render(); }
+
+document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { location.hash = b.dataset.view; }));
+window.addEventListener('hashchange', () => { view = location.hash === '#inventory' ? 'inventory' : 'install'; category = 'all'; render(); });
+$('#categories').addEventListener('click', (e) => { const b = e.target.closest('[data-category]'); if (b) { category = b.dataset.category; clearPreview(); render(); } });
+$('#search').addEventListener('input', render);
+$('#group').addEventListener('change', render);
+$('#results').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'reset') resetFilters();
+  else if (b.id === 'copy-visible') copy(batch(visible()), null);
+  else if (b.dataset.copy !== undefined) copy(command(items[Number(b.dataset.copy)]), items[Number(b.dataset.copy)]);
+  else if (b.dataset.preview !== undefined) preview(items[Number(b.dataset.preview)]);
+});
+$('#copy-command').addEventListener('click', () => copy($('#command').value, items[selected]));
+document.addEventListener('keydown', (e) => {
+  const typing = e.target.matches('input, textarea, select');
+  if (e.key === '/' && !typing) { e.preventDefault(); $('#search').focus(); }
+  else if (e.key === 'Escape' && e.target.id === 'search' && $('#search').value) { $('#search').value = ''; render(); }
+});
+
+async function load() {
+  try {
+    const response = await fetch('data/inventory.yaml', { cache: 'no-store' });
+    if (!response.ok) throw Error(`HTTP ${response.status}`);
+    const { date, rows } = parse(await response.text());
+    items = rows;
+    if (date) {
+      const d = new Date(`${date}T12:00:00`);
+      $('#snapshot-date').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      $('#snapshot').textContent = `SNAPSHOT / ${date.replaceAll('-', '.')}`;
+    }
+    const groups = [...new Set(items.filter((i) => i.kind === 'cask').map((i) => i.group || 'other'))].sort();
+    $('#group').innerHTML = '<option value="all">All groups</option>' + groups.map((g) => `<option value="${escape(g)}">${escape(g)}</option>`).join('');
+    render();
+  } catch (error) {
+    $('#count').textContent = 'Unavailable';
+    $('#results').innerHTML = '<div class="empty"><h2>Inventory could not be loaded</h2><p>Check that data/inventory.yaml is available, then reload this page.</p><button class="ghost" id="retry">Try again</button></div>';
+    $('#retry').onclick = load;
+    console.error(error);
+  }
+}
+load();

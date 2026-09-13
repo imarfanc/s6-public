@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>homebrew2 · Package library</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="rail">
+    <a class="brand" href="#install"><span class="brand-icon">h₂</span> homebrew2</a>
+    <p class="overline">YOUR PACKAGE LIBRARY</p>
+    <nav aria-label="Workspace">
+      <button data-view="install" aria-pressed="true">⌘ <span>Install Apps</span><small>01</small></button>
+      <button data-view="inventory" aria-pressed="false">▤ <span>Inventory</span><small>02</small></button>
+    </nav>
+    <div class="rail-note">
+      <span class="dot"></span> Saved snapshot
+      <strong id="snapshot-date">—</strong>
+      <p>A reference library of your tools.<br>Not a live scan of this Mac.</p>
+      <a href="data/inventory.yaml" download>Download source YAML ↗</a>
+    </div>
+  </aside>
+  <main>
+    <header>
+      <div>
+        <p class="overline" id="eyebrow">01 / THE COLLECTION</p>
+        <h1 id="title">A place for every package.</h1>
+        <p class="intro" id="intro">The tools, desktop apps, and dependencies in your saved inventory.</p>
+      </div>
+      <span class="snapshot" id="snapshot"></span>
+    </header>
+    <section id="stats" aria-label="Package totals"></section>
+    <div class="toolbar">
+      <label class="search">
+        <span aria-hidden="true">⌕</span>
+        <input id="search" type="search" placeholder="Find a package, version, or description…" aria-label="Search packages" aria-keyshortcuts="/">
+        <kbd aria-hidden="true">/</kbd>
+      </label>
+      <label class="group-label">Cask group
+        <select id="group" aria-label="Cask group"><option value="all">All groups</option></select>
+      </label>
+    </div>
+    <div class="list-head">
+      <div id="categories" role="group" aria-label="Package type"></div>
+      <output id="count" aria-live="polite">Loading…</output>
+    </div>
+    <div class="workspace">
+      <section id="results" aria-label="Packages"><p>Loading inventory…</p></section>
+      <aside id="command-panel" hidden>
+        <p class="overline">COMMAND PREVIEW</p>
+        <h2 id="panel-title">Nothing selected</h2>
+        <textarea id="command" readonly aria-label="Installation command" placeholder="Pick a package to see its command"></textarea>
+        <button id="copy-command" class="primary" disabled>Copy command</button>
+        <p id="status" role="status"></p>
+        <ul class="panel-note">
+          <li>Commands are unpinned. Copying never runs anything.</li>
+          <li>App Store commands need <code>brew install mas</code>.</li>
+          <li>DMG entries open the direct download supplied with the app.</li>
+        </ul>
+      </aside>
+    </div>
+    <footer>LOCAL REFERENCE LIBRARY<span>homebrew-install + homebrew-inventory / reimagined</span></footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

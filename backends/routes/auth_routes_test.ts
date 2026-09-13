@@ -5,11 +5,11 @@ function request(path: string, init: RequestInit = {}): Request {
   return new Request(`http://localhost:8893${path}`, init);
 }
 
-Deno.test("discovery exposes exactly the public starter app", async () => {
+Deno.test("discovery exposes the public apps", async () => {
   const response = await handleRequest(request("/api/apps"));
   assertEquals(response.status, 200);
   const body = await response.json();
-  assertEquals(body.apps.map((app: { id: string }) => app.id), ["todo1"]);
+  assertEquals(body.apps.map((app: { id: string }) => app.id), ["homebrew2", "todo1"]);
   assertEquals(
     body.appspaces.map((space: { name: string; locked: boolean }) => ({
       name: space.name,
@@ -25,8 +25,20 @@ Deno.test("discovery exposes exactly the public starter app", async () => {
   );
 });
 
-Deno.test("gallery and starter page are public", async () => {
-  for (const path of ["/", "/apps/todo1/", "/apps/todo1/index.html", "/shared/store.js"]) {
+Deno.test("gallery and app assets are public", async () => {
+  for (
+    const path of [
+      "/",
+      "/apps/todo1/",
+      "/apps/todo1/index.html",
+      "/shared/store.js",
+      "/apps/homebrew2/",
+      "/apps/homebrew2/index.html",
+      "/apps/homebrew2/app.js",
+      "/apps/homebrew2/style.css",
+      "/apps/homebrew2/data/inventory.yaml",
+    ]
+  ) {
     const response = await handleRequest(request(path));
     assertEquals(response.status, 200, path);
     await response.body?.cancel();
