@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>homebrew2 · CaskHub style</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="hub.css">
+</head>
+<body data-layout="hub" class="topbar-unpinned">
+  <div id="icon-sprite" hidden aria-hidden="true"></div>
+  <aside class="rail">
+    <div class="rail-head">
+      <a class="brand" href="hub.html"><span class="brand-icon">h₂</span> Brew<span class="brand-accent">Hub</span></a>
+      <a class="layout-link" href="index.html#install">Original layout ↗</a>
+    </div>
+    <p class="overline">DISCOVER</p>
+    <div id="categories" role="group" aria-label="Package type"></div>
+    <p class="overline">LIBRARY</p>
+    <label class="installed-filter" title="Only Homebrew packages confirmed missing in the last check"><input id="not-installed-only" type="checkbox" disabled> Not installed only</label>
+    <div class="rail-note">
+      <strong id="snapshot-date">—</strong>
+      <p>Shared package collection</p>
+      <details id="sources"><summary>Download source YAML</summary></details>
+    </div>
+  </aside>
+  <main>
+    <header class="hub-topbar">
+      <h1 id="title">Browse</h1><output id="count" aria-live="polite">Loading…</output>
+      <button id="topbar-pin" type="button" class="topbar-pin" aria-pressed="false" aria-label="Pin top bar" title="Pin top bar">📌</button>
+      <div class="display-switch" role="group" aria-label="Display">
+        <button data-display="grid" aria-label="Grid view" aria-pressed="true">▦</button>
+        <button data-display="list" aria-label="List view" aria-pressed="false">☰</button>
+      </div>
+      <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search apps…" aria-label="Search packages" aria-keyshortcuts="/"></label>
+    </header>
+    <div class="hub-controls">
+      <label class="group-label">Cask group <select id="group" aria-label="Cask group"><option value="all">All groups</option></select></label>
+      <button id="check-installed" class="ghost">Check all installed</button>
+      <p id="installed-status" role="status">Check casks and formulae on this Mac.</p>
+    </div>
+    <div hidden><p id="eyebrow"></p><p id="intro"></p><span id="snapshot"></span><section id="stats"></section></div>
+    <div class="workspace">
+      <section id="results" aria-label="Packages"><p>Loading inventory…</p></section>
+      <dialog id="command-dialog" aria-labelledby="panel-title"><button id="close-command" aria-label="Close command preview">×</button><aside id="command-panel" hidden>
+        <p class="overline">COMMAND PREVIEW</p>
+        <h2 id="panel-title">Nothing selected</h2>
+        <textarea id="command" readonly aria-label="Terminal command" placeholder="Pick a package to see its command"></textarea>
+        <button id="copy-command" class="primary" disabled>Copy command</button>
+        <p id="status" role="status"></p>
+        <ul class="panel-note">
+          <li>Commands are unpinned. Copying never runs anything.</li>
+          <li>App Store commands need <code>brew install mas</code>.</li>
+          <li>DMG entries open the direct download supplied with the app.</li>
+        </ul>
+      </aside></dialog>
+    </div>
+    <footer>BREW HUB<span>Shared Homebrew collection · Install Apps</span></footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

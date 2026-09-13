@@ -1,4 +1,5 @@
 const $ = (s) => document.querySelector(s);
+const hub = document.body.dataset.layout === 'hub';
 
 // One entry per top-level YAML section. `command` returns a shell line, or null when the
 // source is a link (Setapp, DMG) rather than something a terminal can install.
@@ -13,7 +14,7 @@ const KINDS = {
 };
 const SECTIONS = Object.fromEntries(Object.entries(KINDS).filter(([, k]) => k.section).map(([key, k]) => [k.section, key]));
 
-let items = [], view = location.hash === '#inventory' ? 'inventory' : 'install', category = 'all', selected = null;
+let items = [], view = !hub && location.hash === '#inventory' ? 'inventory' : 'install', category = 'all', selected = null;
 const escape = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function parse(text, expectedSection) {
@@ -111,6 +112,7 @@ function icon(i) {
 }
 
 function preview(i, text = command(i)) {
+  if (hub && !$('#command-dialog').open) $('#command-dialog').showModal();
   selected = i?.id ?? null;
   $('#panel-title').textContent = i ? i.name : 'Visible set';
   $('#command').value = text || '';
@@ -224,7 +226,7 @@ function render() {
   document.body.classList.toggle('install', install);
   document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
   $('#eyebrow').textContent = install ? '01 / INSTALL APPS' : '02 / THE COLLECTION';
-  $('#title').textContent = install ? 'Your next setup starts here.' : 'A place for every package.';
+  $('#title').textContent = hub ? (category === 'all' ? 'Browse' : KINDS[category].label) : install ? 'Your next setup starts here.' : 'A place for every package.';
   $('#intro').textContent = install ? 'Find a tool. Copy the command. Take it to your terminal.' : 'The tools, desktop apps, and dependencies in your saved inventory.';
   $('#command-panel').hidden = !install;
 
@@ -233,7 +235,7 @@ function render() {
   const count = (k) => items.filter((i) => i.kind === k && inView(i)).length;
   $('#stats').innerHTML = [['Total', kinds.reduce((n, k) => n + count(k), 0)], ...kinds.map((k) => [KINDS[k].label, count(k)])]
     .map(([label, n]) => `<div class="stat"><strong>${n}</strong><span>${label}</span></div>`).join('');
-  $('#categories').innerHTML = ['all', ...kinds].map((k) => `<button data-category="${k}" aria-pressed="${category === k}">${k === 'all' ? 'All' : KINDS[k].label}</button>`).join('');
+  $('#categories').innerHTML = ['all', ...kinds].map((k) => `<button data-category="${k}" aria-pressed="${category === k}">${k === 'all' ? (hub ? 'All apps' : 'All') : KINDS[k].label}${hub ? `<small>${k === 'all' ? kinds.reduce((n, key) => n + count(key), 0) : count(k)}</small>` : ''}</button>`).join('');
   $('#group').disabled = !groupOn();
 
   const rows = visible();
@@ -255,7 +257,7 @@ function render() {
 function resetFilters() { $('#not-installed-only').checked = false; $('#search').value = ''; $('#group').value = 'all'; category = 'all'; render(); }
 
 document.querySelectorAll('[data-view]').forEach((b) => b.addEventListener('click', () => { location.hash = b.dataset.view; }));
-window.addEventListener('hashchange', () => { view = location.hash === '#inventory' ? 'inventory' : 'install'; category = 'all'; render(); });
+window.addEventListener('hashchange', () => { view = !hub && location.hash === '#inventory' ? 'inventory' : 'install'; category = 'all'; render(); });
 $('#categories').addEventListener('click', (e) => { const b = e.target.closest('[data-category]'); if (b) { category = b.dataset.category; clearPreview(); render(); } });
 $('#search').addEventListener('input', render);
 $('#group').addEventListener('change', render);
@@ -302,5 +304,25 @@ async function load() {
     $('#retry').onclick = load;
     console.error(error);
   }
+}
+if (hub) {
+  const TOPBAR_PIN_KEY = 'homebrew2-hub-topbar-pinned';
+  const setTopbarPinned = (pinned) => {
+    document.body.classList.toggle('topbar-unpinned', !pinned);
+    const pin = $('#topbar-pin');
+    pin.setAttribute('aria-pressed', String(pinned));
+    const label = pinned ? 'Unpin top bar' : 'Pin top bar';
+    pin.title = label;
+    pin.setAttribute('aria-label', label);
+    localStorage.setItem(TOPBAR_PIN_KEY, pinned ? '1' : '0');
+  };
+  const savedPin = localStorage.getItem(TOPBAR_PIN_KEY);
+  setTopbarPinned(savedPin === null ? false : savedPin === '1');
+  $('#topbar-pin').addEventListener('click', () => setTopbarPinned($('#topbar-pin').getAttribute('aria-pressed') !== 'true'));
+  $('#close-command').addEventListener('click', () => $('#command-dialog').close());
+  document.querySelectorAll('[data-display]').forEach((button) => button.addEventListener('click', () => {
+    document.body.classList.toggle('list-display', button.dataset.display === 'list');
+    document.querySelectorAll('[data-display]').forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+  }));
 }
 load();

@@ -193,6 +193,7 @@ casks:
     brew_url: "https://formulae.brew.sh/cask/helium-browser"
     updated: "2026-09-13"
     installs_365d: 14378
+    priority: 1
     group: "browser"
   - name: "hermes-desktop"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/hermes-desktop.png"
@@ -260,6 +261,7 @@ casks:
     description: "Markdown previewer with bundled Quick Look extension"
     url: "https://markdownpreview.app/"
     brew_url: "https://formulae.brew.sh/cask/markdown-preview"
+    priority: 1
     group: "editor"
   - name: "neodisk"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/neodisk.png"
@@ -276,12 +278,14 @@ casks:
     brew_url: "https://formulae.brew.sh/cask/neon-vision-editor"
   - name: "obsidian"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/obsidian.png"
+    priority: 2
     version: "1.13.6"
     description: "Knowledge base that works on top of a local folder of plain text Markdown files"
     url: "https://obsidian.md/"
     brew_url: "https://formulae.brew.sh/cask/obsidian"
   - name: "ollama-app"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/ollama-app.png"
+    priority: 2
     version: "0.32.7"
     description: "Get up and running with large language models locally"
     url: "https://ollama.com/"
@@ -330,6 +334,7 @@ casks:
     url: "https://shottr.cc/"
     brew_url: "https://formulae.brew.sh/cask/shottr"
   - name: "supacode"
+    priority: 2
     version: "0.10.8"
     description: "Native terminal coding agents command center"
     url: "https://supacode.sh/"
@@ -347,6 +352,7 @@ casks:
     url: "https://desktop.telegram.org/"
     brew_url: "https://formulae.brew.sh/cask/telegram-desktop"
   - name: "thebrowsercompany-dia"
+    priority: 2
     version: "1.43.1,84757"
     description: "Web browser"
     url: "https://www.diabrowser.com/"
@@ -359,6 +365,7 @@ casks:
     brew_url: "https://formulae.brew.sh/cask/uniclipboard"
   - name: "visual-studio-code"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/visual-studio-code.png"
+    priority: 2
     version: "1.132.0"
     description: "Open-source code editor"
     url: "https://code.visualstudio.com/"
@@ -400,6 +407,7 @@ casks:
     brew_url: "https://formulae.brew.sh/cask/wailbrew"
   - name: "warp"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/warp.png"
+    priority: 2
     version: "0.2026.08.05.09.03.stable_01"
     description: "Rust-based terminal"
     url: "https://www.warp.dev/terminal"
@@ -441,6 +449,7 @@ casks:
     group: "editor"
   - name: "zen"
     icon: "https://cdn.jsdelivr.net/gh/alielsokary/CaskFlow@icons/zen.png"
+    priority: 2
     version: "1.21.13b"
     description: "Gecko based web browser"
     url: "https://zen-browser.app/"

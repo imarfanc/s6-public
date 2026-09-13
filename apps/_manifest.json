@@ -57,7 +57,9 @@
       "url": "/apps/homebrew2/index.html",
       "store": "",
       "db": "",
-      "children": [],
+      "children": [
+        "hub.html"
+      ],
       "aliases": [],
       "backend": "apps/homebrew2/server/route.ts",
       "status": "active"

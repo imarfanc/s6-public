@@ -9,3 +9,5 @@ backend: apps/homebrew2/server/route.ts
 sections:
   - Developer Tools
 tags: [homebrew, packages, inventory, install]
+children:
+  - hub.html

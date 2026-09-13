@@ -38,6 +38,10 @@ code, kbd { font: 12px var(--mono); }
 
 /* Rail */
 .rail { position: fixed; inset: 0 auto 0 0; width: 236px; background: var(--rail); border-right: 1px solid var(--line); padding: 36px 23px; display: flex; flex-direction: column; }
+.rail-head { display: grid; gap: 10px; }
+.rail-head .brand { min-width: 0; }
+.layout-link { align-self: start; margin-left: 6px; color: var(--muted); text-decoration: none; font-size: 11px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 99px; white-space: nowrap; }
+.layout-link:hover { color: var(--ink); background: var(--soft); }
 .brand { display: flex; align-items: center; gap: 11px; font-size: 21px; font-weight: 750; letter-spacing: -1px; text-decoration: none; }
 .brand-icon { background: var(--ink); color: var(--bg); border-radius: 10px; padding: 7px 10px; font-family: Georgia, serif; font-size: 27px; }
 .overline { font-size: 10px; letter-spacing: 1.7px; font-weight: 700; color: var(--muted); }
@@ -146,6 +150,8 @@ footer { display: flex; justify-content: space-between; gap: 10px; font-size: 9p
 }
 @media (max-width: 850px) {
   .rail { position: static; width: auto; padding: 18px 22px; display: block; }
+  .rail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .layout-link { margin-left: 0; flex-shrink: 0; }
   .rail > .overline, .rail-note { display: none; }
   nav { display: flex; margin-top: 16px; }
   nav button { flex: 1; }
