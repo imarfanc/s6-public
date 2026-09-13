@@ -1,0 +1,23 @@
+# Inventory data
+
+`inventory.yaml` is the manifest: `schema_version: 1`, the original `captured_on`
+date, and the filenames for formulae, dependencies, casks, mas, setapp, dmgs,
+and scripts. Each source file has `schema_version: 1` and its named list.
+
+Edit the matching source file to add or update a package. Dependencies are kept
+separate from directly installed formulae and appear only in Inventory.
+The original `dependency` flags are retained for reference; the source file
+determines the displayed type.
+
+This app reads a small YAML subset: each item begins with `  - name:`, fields
+use four spaces, and scalar values are JSON literals (double-quoted strings,
+numbers, or booleans). Keep package names first. The loader rejects unsupported
+schema versions instead of silently loading them.
+
+Optional fields: `version`, `description`, `url`, `brew_url`, `updated`,
+`installs_365d`, `group`, `command`, `download`, and `id` (the Mac App Store ID).
+An explicit `command` overrides the generated installation command, including
+in batch copying. Commands are copied only, never executed by this page.
+
+`captured_on` describes the original snapshot; `updated` is per-package metadata.
+Updating a package does not imply the entire inventory was rescanned.

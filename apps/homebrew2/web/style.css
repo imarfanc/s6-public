@@ -161,3 +161,9 @@ footer { display: flex; justify-content: space-between; gap: 10px; font-size: 9p
   .cards { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.package-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.card-actions { flex-wrap: wrap; }
+#sources a { display: block; }
+#sources summary { cursor: pointer; }
+.rail { overflow-y: auto; }

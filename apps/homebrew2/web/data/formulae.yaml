@@ -1,0 +1,131 @@
+schema_version: 1
+formulae:
+  - name: "bat"
+    version: "0.26.1"
+    dependency: false
+  - name: "bmon"
+    version: "4.0_2"
+    dependency: false
+  - name: "brotli"
+    version: "1.2.0"
+    dependency: false
+  - name: "bun"
+    version: "1.3.14"
+    dependency: false
+  - name: "bwm-ng"
+    version: "0.6.3"
+    dependency: false
+  - name: "dav1d"
+    version: "1.5.4"
+    dependency: false
+  - name: "deno"
+    version: "2.9.5"
+    dependency: false
+  - name: "fd"
+    version: "10.4.2"
+    dependency: false
+  - name: "ffmpeg"
+    version: "8.1.2_1"
+    dependency: false
+  - name: "figlet"
+    version: "2.2.5"
+    dependency: false
+  - name: "fmt"
+    version: "12.2.0"
+    dependency: false
+  - name: "fribidi"
+    version: "1.0.16"
+    dependency: false
+  - name: "fzf"
+    version: "0.74.2"
+    dependency: false
+  - name: "gettext"
+    version: "1.0"
+    dependency: false
+  - name: "gh"
+    version: "2.97.0"
+    dependency: false
+  - name: "glow"
+    version: "2.1.2"
+    dependency: false
+  - name: "go"
+    version: "1.26.5"
+    dependency: false
+  - name: "gum"
+    version: "0.17.0"
+    dependency: false
+  - name: "herdr"
+    version: "0.8.0"
+    dependency: false
+  - name: "jbig2dec"
+    version: "0.20"
+    dependency: false
+  - name: "jq"
+    version: "1.8.2"
+    dependency: false
+  - name: "just"
+    version: "1.58.0"
+    dependency: false
+  - name: "lame"
+    version: "4.0"
+    dependency: false
+  - name: "libtool"
+    version: "2.6.2"
+    dependency: false
+  - name: "lsd"
+    version: "1.2.0"
+    dependency: false
+  - name: "lz4"
+    version: "1.10.0"
+    dependency: false
+  - name: "m4"
+    version: "1.4.21"
+    dependency: false
+  - name: "mpg123"
+    version: "1.33.7"
+    dependency: false
+  - name: "node"
+    version: "26.7.0"
+    dependency: false
+  - name: "opencode"
+    version: "1.18.15"
+    dependency: false
+  - name: "pipx"
+    version: "1.16.6"
+    dependency: false
+  - name: "pkgconf"
+    version: "3.0.5"
+    dependency: false
+  - name: "tesseract"
+    version: "5.5.3"
+    dependency: false
+  - name: "toilet"
+    version: "0.3"
+    dependency: false
+  - name: "tree"
+    version: "2.3.2"
+    dependency: false
+  - name: "uv"
+    version: "0.12.3"
+    dependency: false
+  - name: "wacli"
+    version: "0.16.0"
+    dependency: false
+  - name: "x264"
+    version: "r3222"
+    dependency: false
+  - name: "x265"
+    version: "4.2"
+    dependency: false
+  - name: "xz"
+    version: "5.8.3"
+    dependency: false
+  - name: "yazi"
+    version: "26.5.6"
+    dependency: false
+  - name: "yt-dlp"
+    version: "2026.7.4"
+    dependency: false
+  - name: "zstd"
+    version: "1.5.7_1"
+    dependency: false

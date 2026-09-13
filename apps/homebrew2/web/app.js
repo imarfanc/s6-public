@@ -5,8 +5,8 @@ const $ = (s) => document.querySelector(s);
 const KINDS = {
   formula: { section: 'formulae', label: 'Formulae', one: 'Formula', fallback: 'Command-line package', command: (i) => `brew install ${i.name}`, batch: (s) => `brew install ${s.map((i) => i.name).join(' ')}` },
   cask: { section: 'casks', label: 'Casks', one: 'Cask', fallback: 'Desktop app or font', command: (i) => `brew install --cask ${i.name}`, batch: (s) => `brew install --cask ${s.map((i) => i.name).join(' ')}` },
-  dependency: { label: 'Dependencies', one: 'Dependency', fallback: 'Supporting library', install: false },
-  mas: { section: 'mas', label: 'App Store', one: 'App Store', fallback: 'Mac App Store app', command: (i) => i.id ? `mas install ${i.id}` : null, batch: (s) => { const ids = s.filter((i) => i.id).map((i) => i.id); return ids.length ? `mas install ${ids.join(' ')}` : null; } },
+  dependency: { section: 'dependencies', label: 'Dependencies', one: 'Dependency', fallback: 'Supporting library', install: false },
+  mas: { section: 'mas', label: 'App Store', one: 'App Store', fallback: 'Mac App Store app', command: (i) => i.appStoreId ? `mas install ${i.appStoreId}` : null, batch: (s) => { const ids = s.filter((i) => i.appStoreId).map((i) => i.appStoreId); return ids.length ? `mas install ${ids.join(' ')}` : null; } },
   setapp: { section: 'setapp', label: 'Setapp', one: 'Setapp', fallback: 'Setapp subscription app', link: 'Open in Setapp' },
   dmg: { section: 'dmgs', label: 'DMG', one: 'DMG', fallback: 'Direct download' },
   script: { section: 'scripts', label: 'Scripts', one: 'Vendor script', fallback: 'Install script', inventory: false, batch: (s) => s.map((i) => i.command).join('\n') },
@@ -16,21 +16,42 @@ const SECTIONS = Object.fromEntries(Object.entries(KINDS).filter(([, k]) => k.se
 let items = [], view = location.hash === '#inventory' ? 'inventory' : 'install', category = 'all', selected = null;
 const escape = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-function parse(text) {
-  let kind, item;
-  const rows = [];
-  const date = text.match(/captured on (\d{4}-\d{2}-\d{2})/)?.[1];
+function parse(text, expectedSection) {
+  let section, item;
+  const rows = [], metadata = {};
   for (const line of text.split('\n')) {
-    const section = line.match(/^(\w+):\s*$/);
-    if (section) { kind = SECTIONS[section[1]]; item = null; if (!kind) console.warn(`Unknown section: ${section[1]}`); continue; }
-    if (!kind) continue;
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
+    const top = line.match(/^(\w+):(?: (.+))?$/);
+    if (top) {
+      if (top[2]) metadata[top[1]] = JSON.parse(top[2]);
+      else { section = top[1]; item = null; }
+      continue;
+    }
     const start = line.match(/^  - name: (.+)$/);
-    if (start) { item = { name: JSON.parse(start[1]), kind }; rows.push(item); continue; }
+    if (start && section === expectedSection) { item = { name: JSON.parse(start[1]), kind: SECTIONS[section] }; rows.push(item); continue; }
     const field = line.match(/^    (\w+): (.+)$/);
-    if (field && item) item[field[1]] = JSON.parse(field[2]);
+    if (field && item) { item[field[1] === 'id' ? 'appStoreId' : field[1]] = JSON.parse(field[2]); continue; }
+    throw Error(`Invalid inventory line: ${line}`);
   }
-  if (!rows.length) throw Error('Empty inventory');
-  return { date, rows: rows.map((i, id) => ({ ...i, id, kind: i.dependency ? 'dependency' : i.kind })) };
+  if (metadata.schema_version !== 1) throw Error('Unsupported inventory schema version');
+  if (expectedSection && section !== expectedSection) throw Error(`Expected ${expectedSection} section`);
+  return { metadata, rows };
+}
+
+async function readSource(file) {
+  if (!/^[a-z]+\.yaml$/.test(file)) throw Error('Invalid inventory filename');
+  const response = await fetch(`data/${file}`, { cache: 'no-store' });
+  if (!response.ok) throw Error(`${file}: HTTP ${response.status}`);
+  return response.text();
+}
+
+function metadata(i) {
+  return `<div class="package-meta">${[
+    i.version ? `Version ${escape(i.version)}` : '',
+    i.updated ? `Updated ${escape(i.updated)}` : '',
+    Number.isFinite(i.installs_365d) ? `${i.installs_365d.toLocaleString('en-US')} installs / 365 days` : '',
+    i.group ? escape(i.group) : '',
+  ].filter(Boolean).map((value) => `<span>${value}</span>`).join('')}</div>`;
 }
 
 const command = (i) => i.command || KINDS[i.kind].command?.(i) || null;
@@ -88,7 +109,8 @@ async function copy(text, i) {
 function batch(rows) {
   return Object.entries(KINDS).map(([k, def]) => {
     const set = rows.filter((i) => i.kind === k && command(i));
-    return set.length && def.batch ? def.batch(set) : set.map(command).join('\n');
+    const standard = set.filter((i) => !i.command), custom = set.filter((i) => i.command);
+    return [standard.length && def.batch ? def.batch(standard) : standard.map(command).join('\n'), ...custom.map(command)].filter(Boolean).join('\n');
   }).filter(Boolean).join('\n');
 }
 
@@ -101,7 +123,7 @@ function card(i) {
   return `<article class="package-card" data-id="${i.id}"${selected === i.id ? ' aria-current' : ''}>
     <div class="card-top"><span class="package-name">${escape(i.name)}</span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
     <p class="detail">${escape(i.description || (i.version ? `v${i.version}` : def.fallback))}${i.group ? ` <span class="chip">${escape(i.group)}</span>` : ''}</p>
-    <div class="card-actions">${actions}</div></article>`;
+    ${metadata(i)}<div class="card-actions">${actions}</div></article>`;
 }
 
 function render() {
@@ -129,7 +151,7 @@ function render() {
   }
   if (!install) {
     $('#results').innerHTML = `<div class="table-wrap"><table><thead><tr><th scope="col">PACKAGE</th><th scope="col">SAVED VERSION</th><th scope="col">TYPE</th><th scope="col">DETAILS</th></tr></thead><tbody>${
-      rows.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')
+      rows.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')
     }</tbody></table></div>`;
   } else {
     const copyable = rows.filter(command).length;
@@ -161,10 +183,15 @@ document.addEventListener('keydown', (e) => {
 
 async function load() {
   try {
-    const response = await fetch('data/inventory.yaml', { cache: 'no-store' });
-    if (!response.ok) throw Error(`HTTP ${response.status}`);
-    const { date, rows } = parse(await response.text());
-    items = rows;
+    const { metadata: manifest } = parse(await readSource('inventory.yaml'));
+    const sections = Object.keys(SECTIONS);
+    const sources = await Promise.all(sections.map(async (section) => {
+      if (typeof manifest[section] !== 'string') throw Error(`Missing ${section} source`);
+      return parse(await readSource(manifest[section]), section).rows;
+    }));
+    items = sources.flat().map((item, id) => ({ ...item, id }));
+    const date = manifest.captured_on;
+    $('#sources').innerHTML = '<summary>Download source YAML</summary>' + [['Manifest', 'inventory.yaml'], ...sections.map((section) => [KINDS[SECTIONS[section]].label, manifest[section]])].map(([label, file]) => `<a href="data/${escape(file)}" download>${escape(label)} ↗</a>`).join('');
     if (date) {
       const d = new Date(`${date}T12:00:00`);
       $('#snapshot-date').textContent = d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -175,7 +202,7 @@ async function load() {
     render();
   } catch (error) {
     $('#count').textContent = 'Unavailable';
-    $('#results').innerHTML = '<div class="empty"><h2>Inventory could not be loaded</h2><p>Check that data/inventory.yaml is available, then reload this page.</p><button class="ghost" id="retry">Try again</button></div>';
+    $('#results').innerHTML = '<div class="empty"><h2>Inventory could not be loaded</h2><p>Check that the inventory manifest and its source files use schema version 1 and are available, then reload this page.</p><button class="ghost" id="retry">Try again</button></div>';
     $('#retry').onclick = load;
     console.error(error);
   }

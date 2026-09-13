@@ -1,0 +1,239 @@
+schema_version: 1
+dependencies:
+  - name: "ada-url"
+    version: "4.0.0"
+    dependency: true
+  - name: "aom"
+    version: "3.14.1"
+    dependency: true
+  - name: "c-ares"
+    version: "1.34.8"
+    dependency: true
+  - name: "ca-certificates"
+    version: "2026-07-16"
+    dependency: true
+  - name: "cairo"
+    version: "1.18.4"
+    dependency: true
+  - name: "certifi"
+    version: "2026.7.22"
+    dependency: true
+  - name: "confuse"
+    version: "3.3"
+    dependency: true
+  - name: "fontconfig"
+    version: "2.18.3"
+    dependency: true
+  - name: "freetype"
+    version: "2.14.3"
+    dependency: true
+  - name: "ghostscript"
+    version: "10.07.1"
+    dependency: true
+  - name: "giflib"
+    version: "6.1.3"
+    dependency: true
+  - name: "git-delta"
+    version: "0.19.2"
+    dependency: true
+  - name: "glib"
+    version: "2.88.3"
+    dependency: true
+  - name: "graphite2"
+    version: "1.3.15"
+    dependency: true
+  - name: "harfbuzz"
+    version: "14.3.0"
+    dependency: true
+  - name: "hdrhistogram_c"
+    version: "0.11.10"
+    dependency: true
+  - name: "icu4c@78"
+    version: "78.3"
+    dependency: true
+  - name: "imagemagick"
+    version: "7.1.2-29"
+    dependency: true
+  - name: "imlib2"
+    version: "1.12.6"
+    dependency: true
+  - name: "jpeg-turbo"
+    version: "3.2.0"
+    dependency: true
+  - name: "json-c"
+    version: "0.19"
+    dependency: true
+  - name: "krb5"
+    version: "1.22.2"
+    dependency: true
+  - name: "leptonica"
+    version: "1.87.0"
+    dependency: true
+  - name: "libarchive"
+    version: "3.8.9"
+    dependency: true
+  - name: "libb2"
+    version: "0.98.1"
+    dependency: true
+  - name: "libcaca"
+    version: "0.99.beta20"
+    dependency: true
+  - name: "libdatrie"
+    version: "0.2.14"
+    dependency: true
+  - name: "libde265"
+    version: "1.1.1"
+    dependency: true
+  - name: "libffi"
+    version: "3.8.0"
+    dependency: true
+  - name: "libgit2"
+    version: "1.9.6"
+    dependency: true
+  - name: "libheif"
+    version: "1.23.1"
+    dependency: true
+  - name: "libidn"
+    version: "1.44"
+    dependency: true
+  - name: "libnghttp2"
+    version: "1.70.0"
+    dependency: true
+  - name: "libnghttp3"
+    version: "1.18.0"
+    dependency: true
+  - name: "libngtcp2"
+    version: "1.25.0"
+    dependency: true
+  - name: "libpng"
+    version: "1.6.58"
+    dependency: true
+  - name: "libssh2"
+    version: "1.11.1_4"
+    dependency: true
+  - name: "libthai"
+    version: "0.1.30"
+    dependency: true
+  - name: "libtiff"
+    version: "4.7.2"
+    dependency: true
+  - name: "libunistring"
+    version: "1.4.2"
+    dependency: true
+  - name: "libuv"
+    version: "1.52.1"
+    dependency: true
+  - name: "libvmaf"
+    version: "3.2.0"
+    dependency: true
+  - name: "libvpx"
+    version: "1.16.0"
+    dependency: true
+  - name: "libx11"
+    version: "1.8.13"
+    dependency: true
+  - name: "libxau"
+    version: "1.0.12"
+    dependency: true
+  - name: "libxcb"
+    version: "1.17.0"
+    dependency: true
+  - name: "libxdmcp"
+    version: "1.1.5"
+    dependency: true
+  - name: "libxext"
+    version: "1.3.7"
+    dependency: true
+  - name: "libxrender"
+    version: "0.9.12"
+    dependency: true
+  - name: "little-cms2"
+    version: "2.19"
+    dependency: true
+  - name: "llhttp"
+    version: "9.4.3"
+    dependency: true
+  - name: "lzo"
+    version: "2.10"
+    dependency: true
+  - name: "merve"
+    version: "1.2.2_1"
+    dependency: true
+  - name: "mpdecimal"
+    version: "4.0.1"
+    dependency: true
+  - name: "nbytes"
+    version: "0.1.4"
+    dependency: true
+  - name: "oniguruma"
+    version: "6.9.10"
+    dependency: true
+  - name: "openjpeg"
+    version: "2.5.4"
+    dependency: true
+  - name: "openssl@3"
+    version: "3.6.3"
+    dependency: true
+  - name: "opus"
+    version: "1.6.1"
+    dependency: true
+  - name: "pango"
+    version: "1.58.2"
+    dependency: true
+  - name: "pcre2"
+    version: "10.47_1"
+    dependency: true
+  - name: "pixman"
+    version: "0.46.4"
+    dependency: true
+  - name: "postgresql@18"
+    version: "18.4_1"
+    dependency: true
+  - name: "python@3.14"
+    version: "3.14.6"
+    dependency: true
+  - name: "readline"
+    version: "8.3.3"
+    dependency: true
+  - name: "rich-cli"
+    version: "1.8.1_5"
+    dependency: true
+  - name: "ripgrep"
+    version: "15.2.0"
+    dependency: true
+  - name: "sdl2-compat"
+    version: "2.32.70"
+    dependency: true
+  - name: "sdl3"
+    version: "3.4.14"
+    dependency: true
+  - name: "simdjson"
+    version: "4.6.6"
+    dependency: true
+  - name: "simdutf"
+    version: "9.0.0"
+    dependency: true
+  - name: "sqlite"
+    version: "3.53.4"
+    dependency: true
+  - name: "svt-av1"
+    version: "4.2.0"
+    dependency: true
+  - name: "uvwasi"
+    version: "0.0.23"
+    dependency: true
+  - name: "webp"
+    version: "1.6.0"
+    dependency: true
+  - name: "xorgproto"
+    version: "2025.1"
+    dependency: true
+  - name: "zsh-autocomplete"
+    version: "26.08.04"
+    dependency: true
+  - name: "zsh-autosuggestions"
+    version: "0.7.1"
+    dependency: true
+  - name: "zsh-syntax-highlighting"
+    version: "0.8.0"
+    dependency: true

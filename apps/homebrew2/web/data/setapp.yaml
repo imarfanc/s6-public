@@ -1,0 +1,6 @@
+schema_version: 1
+setapp:
+  - name: "CleanShot"
+    command: "/Applications/Setapp.app/Contents/MacOS/Setapp -installApps \"CleanMyMac X\""
+    description: "Screenshot and screen recording app from Setapp"
+    url: "https://setapp.com/apps/cleanshot"
