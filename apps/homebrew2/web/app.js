@@ -100,6 +100,13 @@ function brewLink(i) {
     : '';
 }
 
+function icon(i) {
+  const hasIcon = /^https:\/\//.test(i.icon || '');
+  return `<span class="package-icon${hasIcon ? '' : ' missing'}" aria-hidden="true">${
+    hasIcon ? `<img src="${escape(i.icon)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : ''
+  }<span class="icon-fallback">${i.kind === 'formula' || i.kind === 'script' ? '&gt;_' : '◇'}</span></span>`;
+}
+
 function preview(i, text = command(i)) {
   selected = i?.id ?? null;
   $('#panel-title').textContent = i ? i.name : 'Visible set';
@@ -138,7 +145,7 @@ function card(i) {
     ? `<button class="primary small" data-copy="${i.id}" aria-label="Copy ${escape(i.name)} command">Copy</button><button class="ghost small" data-preview="${i.id}" aria-label="Preview ${escape(i.name)} command">Preview</button>${brewLink(i)}${link(i, projectLabel)}`
     : `${i.kind === 'dmg' ? downloadLink(i) : ''}${link(i, i.kind === 'setapp' ? 'Open in Setapp' : 'Project')}` || '<span class="detail">No link yet</span>';
   return `<article class="package-card" data-id="${i.id}"${selected === i.id ? ' aria-current' : ''}>
-    <div class="card-top"><span class="package-name">${escape(i.name)}</span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
+    <div class="card-top"><span class="package-title">${icon(i)}<span class="package-name">${escape(i.name)}</span></span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
     <p class="detail">${escape(i.description || (i.version ? `v${i.version}` : def.fallback))}${i.group ? ` <span class="chip">${escape(i.group)}</span>` : ''}</p>
     ${metadata(i)}<div class="card-actions">${actions}</div></article>`;
 }
@@ -168,7 +175,7 @@ function render() {
   }
   if (!install) {
     $('#results').innerHTML = `<div class="table-wrap"><table><thead><tr><th scope="col">PACKAGE</th><th scope="col">SAVED VERSION</th><th scope="col">TYPE</th><th scope="col">DETAILS</th></tr></thead><tbody>${
-      priorityGroups(rows).map(([label, group]) => `<tr class="priority-heading"><th colspan="4" scope="rowgroup">${label}</th></tr>` + group.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')).join('')
+      priorityGroups(rows).map(([label, group]) => `<tr class="priority-heading"><th colspan="4" scope="rowgroup">${label}</th></tr>` + group.map((i) => `<tr><td><span class="package-title">${icon(i)}<span>${escape(i.name)}</span></span></td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')).join('')
     }</tbody></table></div>`;
   } else {
     const copyable = rows.filter(command).length;
@@ -192,6 +199,9 @@ $('#results').addEventListener('click', (e) => {
   else if (b.dataset.preview !== undefined) preview(items[Number(b.dataset.preview)]);
 });
 $('#copy-command').addEventListener('click', () => copy($('#command').value, items[selected]));
+document.addEventListener('error', (event) => {
+  if (event.target.matches?.('.package-icon img')) event.target.closest('.package-icon').classList.add('missing');
+}, true);
 document.addEventListener('keydown', (e) => {
   const typing = e.target.matches('input, textarea, select');
   if (e.key === '/' && !typing) { e.preventDefault(); $('#search').focus(); }

@@ -15,9 +15,13 @@ numbers, or booleans). Keep package names first. The loader rejects unsupported
 schema versions instead of silently loading them.
 
 Optional fields: `version`, `description`, `url`, `brew_url`, `updated`,
-`installs_365d`, `group`, `command`, `download`, and `id` (the Mac App Store ID).
+`installs_365d`, `group`, `command`, `download`, `icon`, and `id` (the Mac App Store ID).
 An explicit `command` overrides the generated installation command, including
 in batch copying. Commands are copied only, never executed by this page.
+
+Cask `icon` values use PNG artwork from CaskHub's CaskFlow `icons` branch via
+jsDelivr. The filename matches the Homebrew cask token. Entries without known
+artwork use the interface's built-in fallback symbol.
 
 `captured_on` describes the original snapshot; `updated` is per-package metadata.
 Updating a package does not imply the entire inventory was rescanned.

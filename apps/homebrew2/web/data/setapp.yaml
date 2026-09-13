@@ -1,6 +1,7 @@
 schema_version: 1
 setapp:
   - name: "CleanShot"
+    icon: "https://store.setapp.com/cdn-cgi/image/width=384,quality=75,format=auto/app/321/48558/icon-1788253037-6a96936d68065.png"
     priority: 1
     command: "/Applications/Setapp.app/Contents/MacOS/Setapp -installApps \"CleanMyMac X\""
     description: "Screenshot and screen recording app from Setapp"

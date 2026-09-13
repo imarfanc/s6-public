@@ -1,6 +1,7 @@
 schema_version: 1
 mas:
   - name: "Numbers"
+    icon: "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b5/8a/54/b58a5487-db0f-2cdd-813b-fa89078cb071/Placeholder.mill/400x400bb-75.webp"
     priority: 1
     id: "361304891"
     description: "Create spreadsheets with Apple Numbers"

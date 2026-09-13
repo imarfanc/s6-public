@@ -1,6 +1,7 @@
 schema_version: 1
 dmgs:
   - name: "ContainerDesktop"
+    icon: "https://sembsa.github.io/ContainerDesktop/icon.png"
     description: "Container management desktop app"
     url: "https://sembsa.github.io/ContainerDesktop/"
     download: "https://github.com/sembsa/ContainerDesktop/releases/latest/download/ContainerDesktop.dmg"
