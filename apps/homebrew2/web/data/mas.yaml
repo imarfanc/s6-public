@@ -1,6 +1,7 @@
 schema_version: 1
 mas:
   - name: "Numbers"
+    priority: 1
     id: "361304891"
     description: "Create spreadsheets with Apple Numbers"
     url: "https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891?platform=mac"

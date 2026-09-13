@@ -1,5 +1,10 @@
 schema_version: 1
 scripts:
+  - name: "opencode"
+    priority: 1
+    command: "curl -fsSL https://opencode.ai/install | bash"
+    description: "Open source AI coding agent"
+    url: "https://opencode.ai/"
   - name: "prime-agent"
     command: "curl --proto '=https' --proto-redir '=https' -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh"
     description: "Self-improving agent for coding workflows and long-running tasks"
@@ -9,6 +14,7 @@ scripts:
     description: "Minimal agent harness"
     url: "https://pi.dev/"
   - name: "atuin"
+    priority: 1
     command: "curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh"
     description: "Magical shell history"
     url: "https://atuin.sh/"
@@ -21,6 +27,7 @@ scripts:
     description: "OpenAI Codex CLI"
     url: "https://github.com/openai/codex"
   - name: "deno"
+    priority: 1
     command: "curl -fsSL https://deno.land/install.sh | sh"
     description: "JavaScript, TypeScript, and WebAssembly runtime"
     url: "https://deno.land/"

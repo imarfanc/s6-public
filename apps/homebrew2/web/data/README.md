@@ -21,3 +21,9 @@ in batch copying. Commands are copied only, never executed by this page.
 
 `captured_on` describes the original snapshot; `updated` is per-package metadata.
 Updating a package does not imply the entire inventory was rescanned.
+
+Optional `priority` controls install-view ordering. Positive integers appear first in
+“First picks” (1 before 2). Negative integers appear last in “Last picks” (-1 before
+-2). Entries without a priority stay in “Everything else”, preserving their source
+order. Both views group this way after applying search and category filters. Omit the
+field for normal placement.

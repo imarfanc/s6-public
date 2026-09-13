@@ -47,6 +47,7 @@ async function readSource(file) {
 
 function metadata(i) {
   return `<div class="package-meta">${[
+    priorityLabel(i),
     i.version ? `Version ${escape(i.version)}` : '',
     i.updated ? `Updated ${escape(i.updated)}` : '',
     Number.isFinite(i.installs_365d) ? `${i.installs_365d.toLocaleString('en-US')} installs / 365 days` : '',
@@ -59,12 +60,28 @@ const inView = (i) => view === 'inventory' ? KINDS[i.kind].inventory !== false :
 const kindsInView = () => Object.keys(KINDS).filter((k) => items.some((i) => i.kind === k && inView(i)));
 const groupOn = () => category === 'all' || category === 'cask';
 
+const isFirstPick = (i) => Number.isInteger(i.priority) && i.priority > 0;
+const isLastPick = (i) => Number.isInteger(i.priority) && i.priority < 0;
+const priorityLabel = (i) => isFirstPick(i) ? `Priority ${i.priority}` : isLastPick(i) ? 'Priority last' : '';
+const priorityRank = (i) => isFirstPick(i) ? [0, i.priority, i.id] : isLastPick(i) ? [2, -i.priority, i.id] : [1, 0, i.id];
+const compareItems = (a, b) => {
+  const [ra, pa, ida] = priorityRank(a), [rb, pb, idb] = priorityRank(b);
+  return ra - rb || pa - pb || ida - idb;
+};
+function priorityGroups(rows) {
+  return [
+    ['First picks', rows.filter(isFirstPick)],
+    ['Everything else', rows.filter((i) => !isFirstPick(i) && !isLastPick(i))],
+    ['Last picks', rows.filter(isLastPick)],
+  ].filter(([, group]) => group.length);
+}
+
 function visible() {
   const q = $('#search').value.trim().toLowerCase();
   const group = groupOn() ? $('#group').value : 'all';
   return items.filter((i) => inView(i) && (category === 'all' || i.kind === category) &&
     (group === 'all' || (i.kind === 'cask' && (i.group || 'other') === group)) &&
-    `${i.name} ${i.version || ''} ${i.description || ''} ${i.group || ''} ${i.url || ''} ${command(i) || ''}`.toLowerCase().includes(q));
+    `${i.name} ${i.version || ''} ${i.description || ''} ${i.group || ''} ${i.url || ''} ${command(i) || ''}`.toLowerCase().includes(q)).sort(compareItems);
 }
 
 function link(i, text = 'Project') {
@@ -151,11 +168,11 @@ function render() {
   }
   if (!install) {
     $('#results').innerHTML = `<div class="table-wrap"><table><thead><tr><th scope="col">PACKAGE</th><th scope="col">SAVED VERSION</th><th scope="col">TYPE</th><th scope="col">DETAILS</th></tr></thead><tbody>${
-      rows.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')
+      priorityGroups(rows).map(([label, group]) => `<tr class="priority-heading"><th colspan="4" scope="rowgroup">${label}</th></tr>` + group.map((i) => `<tr><td>${escape(i.name)}</td><td>${escape(i.version || '—')}</td><td><span class="badge" data-kind="${i.kind}">${KINDS[i.kind].one}</span></td><td class="detail">${escape(i.description || KINDS[i.kind].fallback)}${metadata(i)} ${brewLink(i)} ${link(i, KINDS[i.kind].link)}</td></tr>`).join('')).join('')
     }</tbody></table></div>`;
   } else {
     const copyable = rows.filter(command).length;
-    $('#results').innerHTML = `<div class="copy-set"><h2>${category === 'all' ? 'Installable collection' : KINDS[category].label}</h2><button class="ghost" id="copy-visible"${copyable ? '' : ' disabled'}>Copy ${copyable} as one batch</button></div><div class="cards">${rows.map(card).join('')}</div>`;
+    $('#results').innerHTML = `<div class="copy-set"><h2>${category === 'all' ? 'Installable collection' : KINDS[category].label}</h2><button class="ghost" id="copy-visible"${copyable ? '' : ' disabled'}>Copy ${copyable} as one batch</button></div>${priorityGroups(rows).map(([label, group]) => `<section class="priority-group"><h3>${label}</h3><div class="cards">${group.map(card).join('')}</div></section>`).join('')}`;
   }
 }
 

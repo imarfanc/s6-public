@@ -58,13 +58,13 @@ h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(29px, 3.1vw
 .install h1 { font-family: inherit; font-weight: 650; letter-spacing: -1.7px; }
 .intro { color: var(--muted); max-width: 640px; margin: 0 0 26px; }
 .snapshot { white-space: nowrap; font: 10px var(--mono); color: var(--muted); padding-top: 5px; }
-#stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); border-block: 1px solid var(--line); margin-bottom: 24px; }
-.stat { padding: 18px; border-right: 1px solid var(--line); }
+#stats { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-block: 1px solid var(--line); margin-bottom: 24px; }
+.stat { min-width: 0; padding: 18px clamp(6px, 1vw, 18px); border-right: 1px solid var(--line); }
 .stat:first-child { padding-left: 0; }
 .stat:last-child { border: 0; }
 .stat strong { font-size: 28px; font-weight: 450; font-variant-numeric: tabular-nums; display: block; margin-bottom: 2px; }
 .install .stat strong { font-family: var(--mono); font-size: 24px; }
-.stat span { color: var(--muted); font-size: 12px; }
+.stat span { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
 
 /* Toolbar */
 .toolbar { display: flex; gap: 16px; align-items: end; }
@@ -154,7 +154,7 @@ footer { display: flex; justify-content: space-between; gap: 10px; font-size: 9p
   .toolbar { align-items: stretch; flex-direction: column; gap: 10px; }
   .search kbd { display: none; }
   .list-head { flex-direction: column; align-items: flex-start; }
-  #stats { grid-template-columns: repeat(2, 1fr); }
+  #stats { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .stat:nth-child(odd) { padding-left: 0; }
   .stat:nth-child(even) { border: 0; }
   h1 { font-size: 30px; }
@@ -167,3 +167,6 @@ footer { display: flex; justify-content: space-between; gap: 10px; font-size: 9p
 #sources a { display: block; }
 #sources summary { cursor: pointer; }
 .rail { overflow-y: auto; }
+
+.priority-group h3 { font-size: 12px; color: var(--muted); margin: 18px 0 10px; }
+.priority-heading th { position: static; text-transform: uppercase; }
