@@ -9,6 +9,13 @@
       "localOnly": false,
       "sections": [
         {
+          "name": "Developer Tools",
+          "sort_name": "Developer Tools",
+          "icon": "ph:terminal-window",
+          "color": "#6fd6c4",
+          "sections": []
+        },
+        {
           "name": "testing",
           "sort_name": "testing",
           "icon": "lucide:flask-conical",
@@ -40,7 +47,7 @@
       "name": "homebrew2",
       "sort_name": "homebrew2",
       "description": "Browse packages, check local Homebrew installation status, and copy install commands.",
-      "updated": "2026-09-13",
+      "updated": "2026-09-15",
       "icon": "lucide:box",
       "color": "#537b67",
       "appspace": "Local",
@@ -63,6 +70,34 @@
       "aliases": [],
       "backend": "apps/homebrew2/server/route.ts",
       "status": "active"
+    },
+    {
+      "id": "macos-installer-guide",
+      "name": "macOS Installer Guide",
+      "sort_name": "macOS Installer Guide",
+      "description": "Terminal-first bootable USB walkthrough, IPSW guidance, and verification after every task.",
+      "updated": "",
+      "icon": "ph:terminal-window",
+      "color": "#176b58",
+      "appspace": "Examples",
+      "sections": [
+        "Developer Tools"
+      ],
+      "tags": [
+        "macOS",
+        "USB",
+        "IPSW",
+        "terminal",
+        "guide"
+      ],
+      "path": "macos-installer-guide",
+      "url": "/apps/macos-installer-guide/index.html",
+      "store": "",
+      "db": "",
+      "children": [],
+      "aliases": [],
+      "backend": "",
+      "status": ""
     },
     {
       "id": "todo1",

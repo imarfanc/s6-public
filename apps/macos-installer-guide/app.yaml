@@ -1,0 +1,8 @@
+id: macos-installer-guide
+name: macOS Installer Guide
+description: Terminal-first bootable USB walkthrough, IPSW guidance, and verification after every task.
+icon: ph:terminal-window
+color: "#176b58"
+appspace: Examples
+sections: [Developer Tools]
+tags: [macOS, USB, IPSW, terminal, guide]

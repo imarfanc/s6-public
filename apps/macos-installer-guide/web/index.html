@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>macOS Installer Guide</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    /* Shell sync reads --accent; keep it equal to app.yaml color. */
+    --accent: #176b58;
+    --accent-ink: light-dark(#136150, #8fd8bb);
+    --accent-soft: light-dark(#dcebe3, #1d3a2f);
+    --bg: light-dark(#f3f1e8, #121714);
+    --paper: light-dark(#fbfaf4, #1a211d);
+    --ink: light-dark(#1d2a23, #e9eee6);
+    --muted: light-dark(#5a665e, #a9b6ac);
+    --line: light-dark(#d6d9ce, #34403a);
+    --rail: light-dark(#c3cabd, #3b4841);
+    --erase: light-dark(#a8481a, #f0a06a);
+    --erase-soft: light-dark(#f8e6d8, #3a2519);
+    --term-bg: #10201a;
+    --term-bar: #1a2f27;
+    --term-ink: #e4f1e7;
+    --term-dim: #7f9d8e;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --serif: ui-serif, "New York", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: 24px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.65 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent-ink); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  a:hover { text-decoration-thickness: 2px; }
+  button, input { font: inherit; }
+  :focus-visible { outline: 3px solid #c98232; outline-offset: 3px; border-radius: 3px; }
+  code { font-family: var(--mono); font-size: .88em; overflow-wrap: anywhere; }
+  p code, li code, summary code {
+    padding: .05em .35em;
+    border-radius: 4px;
+    background: var(--accent-soft);
+  }
+  .skip { position: absolute; left: 8px; top: -80px; }
+  .skip:focus { top: 8px; background: var(--paper); padding: 8px 12px; z-index: 5; }
+
+  .label {
+    font: 600 11.5px/1.4 var(--mono);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---- Top strip ---- */
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* ---- Layout ---- */
+  .layout {
+    max-width: 1240px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 780px);
+    gap: clamp(40px, 6vw, 88px);
+    padding: 48px clamp(16px, 4vw, 40px) 64px;
+  }
+
+  /* ---- Sidebar: the route + progress ---- */
+  aside {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    padding-right: 4px;
+  }
+  .progress-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  #progress-text { font: 600 13px var(--mono); color: var(--ink); margin: 0; }
+  .meter { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .meter span { display: block; height: 100%; width: 0; background: var(--accent-ink); transition: width .25s ease; }
+  nav { margin: 24px 0 18px; }
+  nav ol { list-style: none; margin: 0; padding: 0; }
+  nav li + li { margin-top: 1px; }
+  nav a {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+  nav a:hover { background: var(--accent-soft); }
+  nav a .n { font: 12px var(--mono); color: var(--muted); }
+  nav a[aria-current="true"] { background: var(--accent-soft); font-weight: 600; }
+  nav a[data-done="true"] .n { color: var(--accent-ink); font-size: 0; }
+  nav a[data-done="true"] .n::before { content: "✓"; font-size: 13px; font-weight: 700; }
+  nav .group { margin: 16px 0 6px 8px; }
+  .save-note { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin: 0 0 10px; }
+  .reset {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .reset:hover { color: var(--ink); border-color: var(--rail); }
+
+  /* ---- Opening ---- */
+  h1 {
+    font-size: clamp(36px, 5.2vw, 60px);
+    line-height: 1.04;
+    letter-spacing: -.045em;
+    margin: 14px 0 20px;
+    max-width: 14em;
+  }
+  h1 em { font-family: var(--serif); font-weight: 400; letter-spacing: -.02em; color: var(--accent-ink); }
+  h2 { font-size: 25px; line-height: 1.2; letter-spacing: -.02em; margin: 0; }
+  h3 { font-size: 15px; margin: 0 0 6px; }
+  p { margin: 12px 0; }
+  .intro { font-size: 19px; line-height: 1.55; max-width: 36em; color: var(--muted); margin: 0; }
+
+  .fork {
+    margin: 36px 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .fork-note { padding: 20px 24px; border-bottom: 1px solid var(--line); }
+  .fork-note p { margin: 6px 0 0; }
+  .fork-note strong { font-size: 17px; }
+  .routes { display: grid; grid-template-columns: 1fr 1fr; }
+  .routes a {
+    display: block;
+    padding: 18px 24px 20px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .routes a + a { border-left: 1px solid var(--line); }
+  .routes a:hover { background: var(--accent-soft); }
+  .routes b { display: block; font-size: 18px; margin: 4px 0 2px; }
+  .routes b::after { content: " →"; color: var(--accent-ink); }
+  .routes span:last-child { font-size: 14px; color: var(--muted); line-height: 1.45; display: block; }
+
+  /* ---- Steps on a rail ---- */
+  .steps { margin-top: 56px; }
+  .step {
+    position: relative;
+    padding: 0 0 48px 64px;
+    scroll-margin-top: 20px;
+  }
+  .step::before {
+    content: "";
+    position: absolute;
+    left: 19px;
+    top: 44px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--rail);
+  }
+  .step:last-child::before { display: none; }
+  .num {
+    position: absolute;
+    left: 0;
+    top: -4px;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--rail);
+    border-radius: 50%;
+    background: var(--bg);
+    font: 600 13px var(--mono);
+    color: var(--muted);
+    transition: background .2s, border-color .2s, color .2s;
+  }
+  .step:has(.done input:checked) .num {
+    background: var(--accent-ink);
+    border-color: var(--accent-ink);
+    color: var(--bg);
+    font-size: 0;
+  }
+  .step:has(.done input:checked) .num::before { content: "✓"; font-size: 17px; }
+  .step:has(.done input:checked)::before { background: var(--accent-ink); }
+  .step h2 { padding-top: 2px; }
+  .step > p:first-of-type { margin-top: 10px; }
+
+  /* ---- Terminal blocks ---- */
+  .term {
+    margin: 18px 0;
+    border-radius: 8px;
+    background: var(--term-bg);
+    color: var(--term-ink);
+    overflow: hidden;
+    box-shadow: 0 1px 0 light-dark(#0000, #ffffff0d) inset;
+  }
+  .term-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 8px 6px 14px;
+    background: var(--term-bar);
+    font: 11.5px var(--mono);
+    letter-spacing: .06em;
+    color: var(--term-dim);
+  }
+  .term pre {
+    margin: 0;
+    padding: 14px 18px 16px;
+    overflow: auto;
+    font-size: 13.5px;
+    line-height: 1.7;
+  }
+  .term code { font-size: inherit; overflow-wrap: normal; }
+  .term .ln::before { content: "%"; display: inline-block; width: 1.6em; color: var(--term-dim); user-select: none; }
+  .copy {
+    background: transparent;
+    color: var(--term-ink);
+    border: 1px solid #ffffff2e;
+    border-radius: 5px;
+    padding: 2px 10px;
+    font: 12px var(--mono);
+    cursor: pointer;
+  }
+  .copy:hover { background: #ffffff14; }
+  .copy[data-state="copied"] { color: #9fe3c3; border-color: #9fe3c366; }
+  .term.erase { box-shadow: 0 0 0 2px var(--erase); }
+  .term.erase .term-bar { color: #ffc49b; }
+  .term.erase .term-bar span::before { content: "▲ "; }
+
+  /* ---- Callouts ---- */
+  .verify {
+    margin: 20px 0;
+    padding: 16px 20px 18px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+  }
+  .verify .label { color: var(--accent-ink); margin-bottom: 4px; }
+  .verify p { margin: 8px 0 0; }
+  .verify .term { margin: 12px 0; }
+  .caution {
+    margin: 18px 0;
+    padding: 14px 18px;
+    border-radius: 8px;
+    background: var(--erase-soft);
+    border-left: 4px solid var(--erase);
+  }
+  .caution .label { color: var(--erase); display: block; margin-bottom: 2px; }
+  .caution p { margin: 0; }
+
+  .done {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 6px;
+    padding: 8px 14px 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--paper);
+    font-size: 14px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .done:hover { border-color: var(--rail); color: var(--ink); }
+  .done input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .done:has(input:checked) { color: var(--accent-ink); border-color: var(--accent-ink); }
+
+  /* ---- Secondary sections ---- */
+  .secondary { padding: 44px 0 8px; border-top: 1px solid var(--line); scroll-margin-top: 20px; }
+  .secondary > .label { margin-bottom: 8px; }
+  .secondary h3 {
+    margin: 32px 0 4px;
+    font-size: 18px;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .secondary h3 .label { color: var(--accent-ink); }
+  details { border-bottom: 1px solid var(--line); }
+  details:first-of-type { margin-top: 16px; border-top: 1px solid var(--line); }
+  summary { cursor: pointer; font-weight: 600; padding: 14px 0; }
+  details p { margin: 0 0 16px; }
+  .sources { padding-left: 1.1em; }
+  .sources li { margin: 6px 0; }
+  footer { font-size: 13px; color: var(--muted); margin: 40px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 860px) {
+    .layout { display: block; padding-top: 28px; }
+    aside { position: static; max-height: none; overflow: visible; margin-bottom: 40px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); }
+    nav { margin: 16px 0 12px; }
+    nav ol { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 8px; }
+    nav a { padding: 5px 6px; }
+    nav .group { display: none; }
+    .masthead .label:last-child { display: none; }
+    .routes { grid-template-columns: 1fr; }
+    .routes a + a { border-left: 0; border-top: 1px solid var(--line); }
+    .intro { font-size: 17px; }
+  }
+  @media (max-width: 520px) {
+    body { font-size: 16px; }
+    .step { padding-left: 0; }
+    .step::before { display: none; }
+    .num { position: static; margin-bottom: 10px; width: 34px; height: 34px; }
+    h2 { font-size: 22px; }
+    .fork-note, .routes a { padding-left: 18px; padding-right: 18px; }
+    .term pre { font-size: 12.5px; padding: 12px 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before { transition: none !important; }
+  }
+  @media print {
+    aside, .masthead, .copy, .done, .reset { display: none; }
+    .layout { display: block; padding: 0; }
+    body { font-size: 11pt; background: #fff; color: #000; }
+    .term { box-shadow: none; border: 1px solid #999; }
+    .term pre { white-space: pre-wrap; }
+    .step { break-inside: avoid; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to guide</a>
+
+<div class="masthead">
+  <span class="label">Field notes / macOS installer</span>
+  <span class="label">Terminal first · check every step</span>
+</div>
+
+<div class="layout">
+  <aside>
+    <div class="progress-head">
+      <span class="label">Your route</span>
+      <p id="progress-text" aria-live="polite">0 of 9</p>
+    </div>
+    <div class="meter" role="progressbar" aria-label="Steps checked" aria-valuemin="0" aria-valuemax="9" aria-valuenow="0"><span></span></div>
+
+    <nav aria-label="Guide sections">
+      <ol>
+        <li><a href="#start"><span class="n">→</span>Start here: IPSW ≠ USB</a></li>
+      </ol>
+      <div class="label group">Bootable USB</div>
+      <ol>
+        <li><a href="#identify" data-step><span class="n">01</span>Identify</a></li>
+        <li><a href="#backup" data-step><span class="n">02</span>Prepare</a></li>
+        <li><a href="#download" data-step><span class="n">03</span>Download</a></li>
+        <li><a href="#installer" data-step><span class="n">04</span>Check installer</a></li>
+        <li><a href="#usb" data-step><span class="n">05</span>Identify USB</a></li>
+        <li><a href="#format" data-step><span class="n">06</span>Format USB</a></li>
+        <li><a href="#create" data-step><span class="n">07</span>Write installer</a></li>
+        <li><a href="#inspect" data-step><span class="n">08</span>Inspect &amp; eject</a></li>
+        <li><a href="#boot" data-step><span class="n">09</span>Boot &amp; verify</a></li>
+      </ol>
+      <div class="label group">Reference</div>
+      <ol>
+        <li><a href="#ipsw"><span class="n">↳</span>Use your existing IPSW</a></li>
+        <li><a href="#trouble"><span class="n">?</span>Troubleshooting</a></li>
+        <li><a href="#sources"><span class="n">§</span>Sources &amp; links</a></li>
+      </ol>
+    </nav>
+
+    <p class="save-note" id="save-note">Checkmarks are saved in this browser. They record your checks, not automatic tests.</p>
+    <button type="button" class="reset" id="reset">Reset checkmarks</button>
+  </aside>
+
+  <main id="main">
+    <div id="start">
+      <div class="label">A practical installation guide</div>
+      <h1>A bootable Mac installer. <em>One verified step at a time.</em></h1>
+      <p class="intro">Use Terminal for preparation, downloads and USB creation. Use startup options for the boot test. Each task ends with a concrete check.</p>
+
+      <div class="fork">
+        <div class="fork-note">
+          <strong>You already have an IPSW? Read this first.</strong>
+          <p>An <code>.ipsw</code> is a restore image, not the full installer app that <code>createinstallmedia</code> uses. Copying or extracting it onto a USB does not produce Apple’s bootable installer.</p>
+        </div>
+        <div class="routes">
+          <a href="#identify">
+            <span class="label">Route A · steps 01–09</span>
+            <b>I want a bootable USB</b>
+            <span>Obtain the full installer app, then write it to a dedicated USB.</span>
+          </a>
+          <a href="#ipsw">
+            <span class="label">Route B · no USB</span>
+            <b>I want to use my IPSW</b>
+            <span>Restore a compatible Apple-silicon Mac from another Mac, or use compatible virtualization software.</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <section class="step" id="identify">
+        <span class="num" aria-hidden="true">01</span>
+        <h2>Identify the Mac and your file</h2>
+        <p>Open Terminal. Commands work from any folder. Keep the same Terminal tab open: later steps reuse the variables you set. Run the hardware check on the Mac you will install onto; if it is a different Mac, record its model separately.</p>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>sw_vers
+sysctl -n hw.model
+system_profiler SPHardwareDataType</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <p>Record the model and Chip or Processor. Check the intended macOS against <a href="https://support.apple.com/en-us/102662">Apple’s compatibility links</a>. An IPSW belongs to the restore route below. A full installer app belongs to the USB route. Do not rename an IPSW to .app or write it to USB with dd.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-identify"> I checked this step</label>
+      </section>
+
+      <section class="step" id="backup">
+        <span class="num" aria-hidden="true">02</span>
+        <h2>Check your backup and supplies</h2>
+        <p>Use a dedicated USB drive of 32 GB or larger, a compatible Mac, administrator access, power and internet. Copy anything you need off the USB. Back up the destination Mac before installation.</p>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>tmutil latestbackup
+df -h /</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <p>If using Time Machine, confirm the latest backup path and open a needed file from that backup. If no backup is reported, make and verify one first, or verify your other backup method. Confirm there is room for the full installer download; use its listed size in the next step. A backup path alone does not prove the backup is usable.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-backup"> I checked this step</label>
+      </section>
+
+      <section class="step" id="download">
+        <span class="num" aria-hidden="true">03</span>
+        <h2>Get the full installer app</h2>
+        <p>Already have a full installer in Applications? Skip the download and continue to step 4. Having an IPSW does not satisfy this step. First ask Apple which full installers this Mac can download.</p>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>softwareupdate --list-full-installers</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <p>Choose an exact version from the output. If 27.0 is absent, do not assume it is available for this Mac. Use <a href="https://support.apple.com/en-us/102662">Apple’s download guidance</a> for another supported method. Then run the separate download command below. Success means the download finished and an installer app is present in Applications. Quit it if it opens; do not start installation yet.</p>
+        </div>
+        <p>Download only after replacing the example version with one actually listed:</p>
+        <div class="term"><div class="term-bar"><span>Terminal · edit the version first</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>installer_version="27.0"
+softwareupdate --fetch-full-installer --full-installer-version "$installer_version"</code></pre></div>
+        <p><strong>Verify the download:</strong></p>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>find /Applications -maxdepth 1 -name 'Install macOS*.app' -print</code></pre></div>
+        <label class="done"><input type="checkbox" id="done-download"> I checked this step</label>
+      </section>
+
+      <section class="step" id="installer">
+        <span class="num" aria-hidden="true">04</span>
+        <h2>Point Terminal at the installer</h2>
+        <p>Copy the exact installer path from step 3 into the assignment below. The example follows Apple’s macOS 27 command; your installed app name is the source of truth.</p>
+        <div class="term"><div class="term-bar"><span>Terminal · edit the path first</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>installer_app="/Applications/Install macOS 27 Golden Gate.app"</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>test -d "$installer_app" &amp;&amp; echo "PASS: app exists" || echo "STOP: app missing"
+test -x "$installer_app/Contents/Resources/createinstallmedia" &amp;&amp; echo "PASS: tool exists" || echo "STOP: full installer tool missing"</code></pre></div>
+          <p>Both checks should print PASS. If either fails, fix the path or obtain the full installer. A file-size check by itself cannot establish that the download is complete.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-installer"> I checked this step</label>
+      </section>
+
+      <section class="step" id="usb">
+        <span class="num" aria-hidden="true">05</span>
+        <h2>Identify the USB — before erasing</h2>
+        <p>Connect the dedicated USB. Inspect external physical disks, then replace diskN with its whole-disk identifier (for example disk4). Never choose the internal disk. Recheck identifiers after reconnecting a drive.</p>
+        <div class="term"><div class="term-bar"><span>Terminal · replace diskN</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>diskutil list external physical
+usb_disk="/dev/diskN"
+diskutil info "$usb_disk"</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <p>Match the device name, capacity and External location to your USB. Confirm Whole is Yes. If the device is internal, ambiguous, or contains anything you need, stop. Record this identifier; do not guess from a previous session.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-usb"> I checked this step</label>
+      </section>
+
+      <section class="step" id="format">
+        <span class="num" aria-hidden="true">06</span>
+        <h2>Prepare the USB volume</h2>
+        <p>This creates a GUID partition map and a Mac OS Extended (Journaled) volume named MyVolume. Read the disk details again immediately before running the erase command.</p>
+        <div class="caution">
+          <span class="label">Erases a whole disk</span>
+          <p><strong>Erases the entire selected USB disk, including every partition.</strong> Run only after verifying step 5. This command has no interactive confirmation.</p>
+        </div>
+        <div class="term erase"><div class="term-bar"><span>Terminal · erases disk</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>diskutil eraseDisk JHFS+ MyVolume GPT "$usb_disk"</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>diskutil list "$usb_disk"
+diskutil info /Volumes/MyVolume</code></pre></div>
+          <p>Expect successful erase completion. Confirm GUID_partition_scheme, MyVolume, the expected capacity, and its location on the USB you selected. If any value is wrong, stop.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-format"> I checked this step</label>
+      </section>
+
+      <section class="step" id="create">
+        <span class="num" aria-hidden="true">07</span>
+        <h2>Write the bootable installer</h2>
+        <p>Run the command, enter your administrator password, then read the target volume before typing Y. Password characters do not appear. Keep the USB connected until the tool finishes.</p>
+        <div class="caution">
+          <span class="label">Erases the volume again</span>
+          <p>Confirm the prompt names your USB volume. Approve removable-volume access if macOS asks.</p>
+        </div>
+        <div class="term erase"><div class="term-bar"><span>Terminal · erases volume</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>sudo "$installer_app/Contents/Resources/createinstallmedia" --volume /Volumes/MyVolume</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <div class="term"><div class="term-bar"><span>Terminal · run immediately after</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>echo "createinstallmedia exit status: $?"</code></pre></div>
+          <p>Wait for createinstallmedia to report that the install media is available. Immediately run the exit-status check shown here, before any other command: it should be 0. A nonzero status or any error means this step is incomplete; do not treat the existence of files on the USB as success.</p>
+        </div>
+        <label class="done"><input type="checkbox" id="done-create"> I checked this step</label>
+      </section>
+
+      <section class="step" id="inspect">
+        <span class="num" aria-hidden="true">08</span>
+        <h2>Inspect and eject the finished USB</h2>
+        <p>The volume is normally renamed to match the installer. Inspect the same physical disk; do not assume it is still called MyVolume.</p>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>diskutil list "$usb_disk"</code></pre></div>
+        <div class="verify">
+          <div class="label">Verify before continuing</div>
+          <p>The renamed installer volume should appear on the intended USB. This confirms its location, not bootability. Eject with the command below and expect an ejected message before unplugging. Step 9 is the actual boot test.</p>
+        </div>
+        <div class="term"><div class="term-bar"><span>Terminal</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>diskutil eject "$usb_disk"</code></pre></div>
+        <label class="done"><input type="checkbox" id="done-inspect"> I checked this step</label>
+      </section>
+
+      <section class="step" id="boot">
+        <span class="num" aria-hidden="true">09</span>
+        <h2>Boot it and verify the installer opens</h2>
+        <p>Connect the USB directly to the destination Mac and connect to the internet. Save open work and shut down. <strong>Apple silicon:</strong> hold the power button until startup options appear, select the installer and Continue. <strong>Intel:</strong> power on holding Option, select the installer and press Return.</p>
+        <div class="caution">
+          <span class="label">Before you test</span>
+          <p>Run the verification command in Terminal <strong>after the installed system boots</strong>. Do not erase the internal disk just to test the USB. On T2 Macs, external boot may need enabling in <a href="https://support.apple.com/en-us/103208">Startup Security Utility</a>.</p>
+        </div>
+        <div class="verify">
+          <div class="label">Verify</div>
+          <p>The macOS installer or recovery utilities should open from the USB. Reaching this screen is the practical boot test. You can quit and restart without installing. If you choose to install, follow the onscreen prompts and select your intended destination volume. After setup, run sw_vers and compare ProductVersion with your intended version.</p>
+          <div class="term"><div class="term-bar"><span>Terminal · after setup</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>sw_vers</code></pre></div>
+        </div>
+        <label class="done"><input type="checkbox" id="done-boot"> I checked this step</label>
+      </section>
+    </div>
+
+    <section class="secondary" id="ipsw">
+      <div class="label">Route B · existing download</div>
+      <h2>Use the IPSW you already have</h2>
+      <p>This route does not make a bootable USB. For a physical Apple-silicon Mac, an IPSW restore needs a second Mac and a direct data cable. An Intel T2 firmware restore is a different case; do not assume a macOS Apple-silicon IPSW applies to it.</p>
+
+      <h3><span class="label">B1</span>Inspect the local file</h3>
+      <p>Replace the path below with your existing file. No download is needed for this inspection.</p>
+      <div class="term"><div class="term-bar"><span>Terminal · edit the path first</span><button type="button" class="copy">Copy</button></div><pre tabindex="0"><code>ipsw_file="$HOME/Downloads/your-file.ipsw"
+ls -lh "$ipsw_file"
+unzip -t "$ipsw_file"</code></pre></div>
+      <div class="verify">
+        <div class="label">Verify</div>
+        <p>The file exists and the archive test finishes without errors. This can take time on a large image. Archive integrity does not prove authenticity, compatibility or Apple signing eligibility. Match the exact device and build using <a href="https://ipsw.me/macOS/27.0/">IPSW.me · macOS 27.0</a> and the file’s original source. That index could not be retrieved during this guide’s source check; no current signing status is asserted.</p>
+      </div>
+
+      <h3><span class="label">B2</span>Prepare the host and enter DFU</h3>
+      <p>Follow <a href="https://support.apple.com/en-us/108900">Apple’s model-specific DFU instructions</a> for the right port, cable and button sequence. The host needs macOS 14 or later and internet. Keep both Macs powered. The target’s display stays blank in DFU.</p>
+      <div class="verify">
+        <div class="label">Verify</div>
+        <p>Finder on the host shows the target in Mac DFU Mode. A blank target screen alone is not evidence of DFU. If the Finder device does not appear, recheck Apple’s port and cable instructions before continuing.</p>
+      </div>
+
+      <h3><span class="label">B3</span>Choose recovery or an erase-and-restore</h3>
+      <p>For a broken Mac, Apple advises trying <strong>Revive</strong> first to preserve data. Apple’s current public Finder guide describes its managed restore flow; it does not document selecting your local IPSW on the page linked here. Do not assume clicking Restore automatically uses your downloaded file.</p>
+      <div class="caution">
+        <span class="label">Erases the target Mac</span>
+        <p><strong>Restore erases the target Mac.</strong> Back up first, and try Revive before Restore when data matters.</p>
+      </div>
+      <p>For a local-file workflow, consult the current <a href="https://support.apple.com/guide/apple-configurator-mac/welcome/mac">Apple Configurator guide</a> for your installed version. Proceed only when the restore UI identifies the intended target and accepts your exact compatible IPSW. This guide does not supply an unverified Terminal restore command.</p>
+      <div class="verify">
+        <div class="label">Verify</div>
+        <p>Before confirming a restore, verify the target Mac, selected file and backup. After completion, the target restarts into setup; after setup, run <code>sw_vers</code> and compare version and build with your intended image. An error or a device remaining in DFU is not success.</p>
+      </div>
+      <p>For a virtual machine instead, see <a href="https://developer.apple.com/documentation/virtualization/running-macos-in-a-virtual-machine-on-apple-silicon">Apple’s macOS virtualization sample</a>. Its command-line InstallationTool uses IPSW restore images to create a VM; it does not create USB media.</p>
+    </section>
+
+    <section class="secondary" id="trouble">
+      <div class="label">When a check fails</div>
+      <h2>Troubleshooting</h2>
+      <details>
+        <summary>“Update not found”</summary>
+        <p>Run <code>softwareupdate --list-full-installers</code> again. Use an exact listed version, or Apple’s download links on a compatible Mac. An IPSW listing does not guarantee availability as a full installer.</p>
+      </details>
+      <details>
+        <summary>Missing createinstallmedia or invalid installer</summary>
+        <p>Check the exact application path in step 4. An IPSW or incomplete installer is insufficient. Download the full installer from Apple again; do not bypass validation.</p>
+      </details>
+      <details>
+        <summary>The USB cannot be erased or is busy</summary>
+        <p>Close files and Finder windows using it. Re-run step 5 to confirm the disk identity before retrying preparation. Never switch to another disk identifier just to make the error disappear.</p>
+      </details>
+      <details>
+        <summary>The installer is not in startup options</summary>
+        <p>Connect directly, check compatibility, and repeat the boot sequence for the target hardware. For a T2 Mac, check Apple’s external-boot setting. If creation failed, recreate the USB only after rechecking its identity.</p>
+      </details>
+    </section>
+
+    <section class="secondary" id="sources">
+      <div class="label">Source check · 15 September 2026</div>
+      <h2>Sources &amp; useful links</h2>
+      <p>Use the live Apple pages for version availability and model-specific requirements.</p>
+      <ul class="sources">
+        <li><a href="https://www.macworld.com/article/671308/how-to-create-a-bootable-usb-macos-installer.html">Macworld · original USB installer article</a></li>
+        <li><a href="https://support.apple.com/en-us/101578">Apple · create a bootable installer</a></li>
+        <li><a href="https://support.apple.com/en-us/102662">Apple · download macOS and check compatibility</a></li>
+        <li><a href="https://support.apple.com/en-us/108900">Apple · revive or restore a Mac</a></li>
+        <li><a href="https://ipsw.me/macOS/27.0/">IPSW.me · macOS 27.0 images</a></li>
+      </ul>
+    </section>
+
+    <footer>Commands are instructions for you to run. This page cannot inspect your disks, verify your backup or perform an installation.</footer>
+  </main>
+</div>
+
+<script>
+  const key = 'macos-installer-guide.v1';
+  const checks = [...document.querySelectorAll('.done input')];
+  const note = document.querySelector('#save-note');
+  const meter = document.querySelector('.meter');
+  const navLinks = [...document.querySelectorAll('nav a')];
+
+  let saved = {};
+  try {
+    saved = JSON.parse(localStorage.getItem(key) || '{}') || {};
+  } catch {
+    note.textContent = 'Progress storage is unavailable. Checkmarks work for this visit.';
+  }
+  checks.forEach((c) => (c.checked = saved[c.id] === true));
+
+  function update(save) {
+    const count = checks.filter((c) => c.checked).length;
+    document.querySelector('#progress-text').textContent = count + ' of ' + checks.length;
+    meter.setAttribute('aria-valuenow', count);
+    meter.firstElementChild.style.width = (count / checks.length) * 100 + '%';
+    checks.forEach((c) => {
+      const link = document.querySelector('nav a[href="#' + c.id.slice(5) + '"]');
+      if (link) link.dataset.done = c.checked;
+    });
+    if (!save) return;
+    try {
+      localStorage.setItem(key, JSON.stringify(Object.fromEntries(checks.map((c) => [c.id, c.checked]))));
+    } catch {
+      note.textContent = 'Progress could not be saved. Checkmarks work for this visit.';
+    }
+  }
+  checks.forEach((c) => c.addEventListener('change', () => update(true)));
+  document.querySelector('#reset').addEventListener('click', () => {
+    checks.forEach((c) => (c.checked = false));
+    update(true);
+  });
+
+  // One prompt glyph per command line. The glyph is CSS, so textContent stays copyable.
+  document.querySelectorAll('.term code').forEach((code) => {
+    const lines = code.textContent.split('\n');
+    code.textContent = '';
+    lines.forEach((line, i) => {
+      const span = document.createElement('span');
+      span.className = 'ln';
+      span.textContent = line;
+      code.append(span);
+      if (i < lines.length - 1) code.append('\n');
+    });
+  });
+
+  document.querySelectorAll('.copy').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const code = b.closest('.term').querySelector('code');
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        b.textContent = 'Copied';
+        b.dataset.state = 'copied';
+      } catch {
+        b.textContent = 'Select & copy';
+        const range = document.createRange();
+        range.selectNodeContents(code);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+      setTimeout(() => {
+        b.textContent = 'Copy';
+        delete b.dataset.state;
+      }, 2200);
+    })
+  );
+
+  // Mark the section currently in view in the sidebar.
+  const targets = navLinks.map((a) => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  if ('IntersectionObserver' in window) {
+    const inView = new Set();
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? inView.add(e.target) : inView.delete(e.target)));
+        const current = targets.find((t) => inView.has(t));
+        if (!current) return;
+        navLinks.forEach((a) => a.setAttribute('aria-current', a.getAttribute('href') === '#' + current.id));
+      },
+      { rootMargin: '-20% 0px -70% 0px' }
+    );
+    targets.forEach((t) => io.observe(t));
+  }
+
+  update(false);
+</script>
+</body>
+</html>
