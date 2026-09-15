@@ -2,7 +2,7 @@
 
 `inventory.yaml` is the manifest: `schema_version: 1`, the original `captured_on`
 date, and the filenames for formulae, dependencies, casks, mas, setapp, dmgs,
-and scripts. Each source file has `schema_version: 1` and its named list.
+scripts, and github. Each source file has `schema_version: 1` and its named list.
 
 Edit the matching source file to add or update a package. Dependencies are kept
 separate from directly installed formulae and appear only in Inventory.
@@ -15,7 +15,7 @@ numbers, or booleans). Keep package names first. The loader rejects unsupported
 schema versions instead of silently loading them.
 
 Optional fields: `version`, `description`, `url`, `brew_url`, `updated`,
-`installs_365d`, `group`, `command`, `download`, `icon`, `icon_fit`, and `id` (the Mac App Store ID).
+`releases` (GitHub releases page), `installs_365d`, `group`, `command`, `download`, `icon`, `icon_fit`, and `id` (the Mac App Store ID).
 An explicit `command` overrides the generated installation command, including
 in batch copying. Commands are copied only, never executed by this page.
 

@@ -6,10 +6,12 @@ scripts:
     description: "Open source AI coding agent"
     url: "https://opencode.ai/"
   - name: "prime-agent"
+    priority: 3
     command: "curl --proto '=https' --proto-redir '=https' -fsSL https://app.primeintellect.ai/prime-agent/install.sh | sh"
     description: "Self-improving agent for coding workflows and long-running tasks"
     url: "https://github.com/PrimeIntellect-ai/prime-agent"
   - name: "pi"
+    priority: 3
     command: "curl -fsSL https://pi.dev/install.sh | sh"
     description: "Minimal agent harness"
     url: "https://pi.dev/"
@@ -19,10 +21,12 @@ scripts:
     description: "Magical shell history"
     url: "https://atuin.sh/"
   - name: "claude"
+    priority: 3
     command: "curl -fsSL https://claude.ai/install.sh | bash"
     description: "Claude Code CLI"
     url: "https://code.claude.com/"
   - name: "codex"
+    priority: 2
     command: "curl -fsSL https://chatgpt.com/codex/install.sh | sh"
     description: "OpenAI Codex CLI"
     url: "https://github.com/openai/codex"
@@ -31,3 +35,9 @@ scripts:
     command: "curl -fsSL https://deno.land/install.sh | sh"
     description: "JavaScript, TypeScript, and WebAssembly runtime"
     url: "https://deno.land/"
+  - name: "hf"
+    priority: 4
+    icon: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+    command: "curl -LsSf https://hf.co/cli/install.sh | bash -s -- --exclude-skill"
+    description: "Hugging Face CLI"
+    url: "https://huggingface.co/"

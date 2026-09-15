@@ -7,7 +7,62 @@ const decoder = new TextDecoder();
 export interface InstalledPackages {
   formulae: string[];
   casks: string[];
+  scripts?: Record<string, { path: string | null; version: string | null }>;
   checkedAt: string;
+}
+
+// Only known executables are probed; installer commands are never executed.
+export async function readScripts() {
+  const home = Deno.env.get("HOME") || "";
+  const directories = [
+    ...new Set([
+      ...(Deno.env.get("PATH") || "").split(":"),
+      `${home}/.local/bin`,
+      `${home}/.deno/bin`,
+      `${home}/.atuin/bin`,
+      `${home}/.opencode/bin`,
+      "/opt/homebrew/bin",
+      "/usr/local/bin",
+    ]),
+  ].filter((path) => path.startsWith("/"));
+  const entries = await Promise.all(
+    ["opencode", "prime-agent", "pi", "atuin", "claude", "codex", "deno", "hf"].map(
+      async (name) => {
+        let path: string | null = null;
+        for (const directory of directories) {
+          const candidate = `${directory}/${name}`;
+          try {
+            const stat = await Deno.stat(candidate);
+            if (stat.isFile && ((stat.mode ?? 0) & 0o111)) {
+              path = candidate;
+              break;
+            }
+          } catch (error) {
+            if (!(error instanceof Deno.errors.NotFound)) throw error;
+          }
+        }
+        let version: string | null = null;
+        if (path) {
+          try {
+            const result = await new Deno.Command(path, {
+              args: ["--version"],
+              stdin: "null",
+              stdout: "piped",
+              stderr: "piped",
+              signal: AbortSignal.timeout(3_000),
+            }).output();
+            if (result.success) {
+              // deno-lint-ignore no-control-regex -- strip terminal color escapes
+              version = decoder.decode(result.stdout).replace(/\x1b\[[0-9;]*m/g, "")
+                .trim().split(/\r?\n/)[0]?.slice(0, 200) || null;
+            }
+          } catch { /* An installed executable can lack a working version command. */ }
+        }
+        return [name, { path, version }] as const;
+      },
+    ),
+  );
+  return Object.fromEntries(entries);
 }
 
 async function list(brew: string, kind: "formula" | "cask"): Promise<string[]> {
@@ -34,7 +89,12 @@ export async function readInstalled(): Promise<InstalledPackages> {
       const [formulae, casks] = results.map((result) =>
         (result as PromiseFulfilledResult<string[]>).value
       );
-      return { formulae: formulae!, casks: casks!, checkedAt: new Date().toISOString() };
+      return {
+        formulae: formulae!,
+        casks: casks!,
+        scripts: await readScripts(),
+        checkedAt: new Date().toISOString(),
+      };
     } catch (error) {
       if (error instanceof Deno.errors.NotFound) continue;
       if (error instanceof DOMException && error.name === "AbortError") {

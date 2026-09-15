@@ -9,12 +9,18 @@ const KINDS = {
   dependency: { section: 'dependencies', label: 'Dependencies', one: 'Dependency', fallback: 'Supporting library', install: false },
   mas: { section: 'mas', label: 'App Store', one: 'App Store', fallback: 'Mac App Store app', command: (i) => i.appStoreId ? `mas install ${i.appStoreId}` : null, batch: (s) => { const ids = s.filter((i) => i.appStoreId).map((i) => i.appStoreId); return ids.length ? `mas install ${ids.join(' ')}` : null; } },
   setapp: { section: 'setapp', label: 'Setapp', one: 'Setapp', fallback: 'Setapp subscription app', link: 'Open in Setapp' },
-  dmg: { section: 'dmgs', label: 'DMG', one: 'DMG', fallback: 'Direct download' },
+  dmg: { section: 'dmgs', label: 'Web', one: 'DMG', fallback: 'Direct download' },
+  github: { section: 'github', label: 'GitHub', one: 'GitHub app', fallback: 'App hosted on GitHub', inventory: false },
   script: { section: 'scripts', label: 'Scripts', one: 'Vendor script', fallback: 'Install script', inventory: false, batch: (s) => s.map((i) => i.command).join('\n') },
 };
 const SECTIONS = Object.fromEntries(Object.entries(KINDS).filter(([, k]) => k.section).map(([key, k]) => [k.section, key]));
 
 let items = [], view = !hub && location.hash === '#inventory' ? 'inventory' : 'install', category = 'all', selected = null;
+const CATEGORY_STORAGE_KEY = 'homebrew2.category.v1';
+try {
+  const savedCategory = localStorage.getItem(CATEGORY_STORAGE_KEY);
+  if (savedCategory === 'all' || Object.hasOwn(KINDS, savedCategory)) category = savedCategory;
+} catch { /* Browsing still works when storage is unavailable. */ }
 const escape = (s = '') => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function parse(text, expectedSection) {
@@ -82,7 +88,7 @@ function visible() {
   const q = $('#search').value.trim().toLowerCase();
   const group = groupOn() ? $('#group').value : 'all';
   return items.filter((i) => inView(i) && (category === 'all' || i.kind === category) &&
-    (!$('#not-installed-only').checked || (installed && brewKind(i) && !installed[brewKind(i)].has(i.name.split('/').pop()))) &&
+    (!$('#not-installed-only').checked || (installed && (brewKind(i) ? !installed[brewKind(i)].has(i.name.split('/').pop()) : i.kind === 'script' && installed.scripts?.[i.name]?.path === null))) &&
     (group === 'all' || (i.kind === 'cask' && (i.group || 'other') === group)) &&
     `${i.name} ${i.version || ''} ${i.description || ''} ${i.group || ''} ${i.url || ''} ${command(i) || ''}`.toLowerCase().includes(q)).sort(compareItems);
 }
@@ -93,7 +99,7 @@ function link(i, text = 'Project') {
 
 function downloadLink(i) {
   return /^https?:\/\//.test(i.download || '')
-    ? `<a class="primary small" href="${escape(i.download)}" aria-label="Download ${escape(i.name)} DMG">Download DMG ↗</a>`
+    ? `<a class="primary small" href="${escape(i.download)}" aria-label="Download ${escape(i.name)} DMG">Download</a>`
     : '';
 }
 
@@ -150,11 +156,12 @@ function applyInstalled(data) {
       ![...data.casks, ...data.formulae].every((name) => typeof name === 'string') ||
       typeof data.checkedAt !== 'string' || !Number.isFinite(Date.parse(data.checkedAt))) throw Error('Invalid Homebrew response.');
   installed = Object.fromEntries(['casks', 'formulae'].map((kind) => [kind, new Set(data[kind].map((name) => name.split('/').pop()))]));
+  installed.scripts = data.scripts || null;
   installedCheckedAt = data.checkedAt;
   $('#not-installed-only').disabled = false;
 }
 function installedSummary() {
-  return `Last checked ${new Date(installedCheckedAt).toLocaleString()}: ${installed.casks.size} casks and ${installed.formulae.size} formulae installed on this server.`;
+  return `Last checked ${new Date(installedCheckedAt).toLocaleString()}: ${installed.casks.size} casks and ${installed.formulae.size} formulae installed on this server.${installed.scripts ? ` ${Object.values(installed.scripts).filter((s) => s.path).length} script tools found.` : ' Recheck to detect script tools.'}`;
 }
 try {
   const saved = localStorage.getItem(INSTALLED_STORAGE_KEY);
@@ -169,6 +176,12 @@ $('#not-installed-only').addEventListener('change', () => { clearPreview(); rend
 const brewKind = (i) => i.kind === 'cask' ? 'casks' : ['formula', 'dependency'].includes(i.kind) ? 'formulae' : null;
 function installedBadge(i) {
   const kind = brewKind(i);
+  if (i.kind === 'script') {
+    const tool = installed?.scripts?.[i.name];
+    if (!tool) return '<span class="install-state">Not checked</span>';
+    if (!tool.path) return '<span class="install-state">Not found in executable paths</span>';
+    return `<div class="script-installed"><span class="install-state is-installed">Installed · ${escape(tool.version || 'Version unavailable')}</span><code title="Executable path">${escape(tool.path)}</code></div>`;
+  }
   if (!kind) return '';
   if (!installed) return '<span class="install-state">Not checked</span>';
   const name = i.name.split('/').pop();
@@ -181,9 +194,9 @@ async function checkInstalled() {
   const button = $('#check-installed'), status = $('#installed-status');
   button.disabled = true;
   button.textContent = 'Checking…';
-  status.textContent = 'Reading casks and formulae from Homebrew on this server…';
+  status.textContent = 'Checking Homebrew packages and script executables on this server…';
   try {
-    const response = await fetch('/api/apps/homebrew2/installed', { cache: 'no-store', signal: AbortSignal.timeout(20000) });
+    const response = await fetch('/api/apps/homebrew2/installed', { cache: 'no-store', signal: AbortSignal.timeout(25000) });
     const data = await response.json();
     if (!response.ok) throw Error(data.error || 'Could not check Homebrew.');
     applyInstalled(data);
@@ -214,7 +227,7 @@ function card(i) {
   const projectLabel = i.kind === 'setapp' ? 'Open in Setapp' : i.kind === 'mas' ? 'View in App Store' : 'Project';
   const actions = cmd
     ? `<button class="primary small" data-copy="${i.id}" aria-label="Copy ${escape(i.name)} command">Copy</button><button class="ghost small" data-preview="${i.id}" aria-label="Preview ${escape(i.name)} command">Preview</button>${brewLink(i)}${link(i, projectLabel)}`
-    : `${i.kind === 'dmg' ? downloadLink(i) : ''}${link(i, i.kind === 'setapp' ? 'Open in Setapp' : 'Project')}` || '<span class="detail">No link yet</span>';
+    : `${i.kind === 'github' ? `<div class="download-actions">${downloadLink(i)}${/^https:\/\//.test(i.releases || '') ? `<a class="primary small" href="${escape(i.releases)}" target="_blank" rel="noreferrer" aria-label="Releases for ${escape(i.name)}">Releases ↗</a>` : ''}</div>` : ''}${i.kind === 'dmg' ? downloadLink(i) : ''}${link(i, i.kind === 'setapp' ? 'Open in Setapp' : 'Project')}` || '<span class="detail">No link yet</span>';
   return `<article class="package-card" data-id="${i.id}"${selected === i.id ? ' aria-current' : ''}>
     <div class="card-top"><span class="package-title">${icon(i)}<span class="package-name">${escape(i.name)}</span></span><span class="badge" data-kind="${i.kind}">${def.one}</span></div>
     <p class="detail">${escape(i.description || (i.version ? `v${i.version}` : def.fallback))}${i.group ? ` <span class="chip">${escape(i.group)}</span>` : ''}</p>
@@ -226,12 +239,13 @@ function render() {
   document.body.classList.toggle('install', install);
   document.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
   $('#eyebrow').textContent = install ? '01 / INSTALL APPS' : '02 / THE COLLECTION';
-  $('#title').textContent = hub ? (category === 'all' ? 'Browse' : KINDS[category].label) : install ? 'Your next setup starts here.' : 'A place for every package.';
   $('#intro').textContent = install ? 'Find a tool. Copy the command. Take it to your terminal.' : 'The tools, desktop apps, and dependencies in your saved inventory.';
   $('#command-panel').hidden = !install;
 
   const kinds = kindsInView();
   if (!kinds.includes(category)) category = 'all';
+  try { localStorage.setItem(CATEGORY_STORAGE_KEY, category); } catch { /* Optional persistence. */ }
+  $('#title').textContent = hub ? (category === 'all' ? 'Browse' : KINDS[category].label) : install ? 'Your next setup starts here.' : 'A place for every package.';
   const count = (k) => items.filter((i) => i.kind === k && inView(i)).length;
   $('#stats').innerHTML = [['Total', kinds.reduce((n, k) => n + count(k), 0)], ...kinds.map((k) => [KINDS[k].label, count(k)])]
     .map(([label, n]) => `<div class="stat"><strong>${n}</strong><span>${label}</span></div>`).join('');
