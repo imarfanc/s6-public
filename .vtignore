@@ -6,3 +6,5 @@ _other/
 .vscode
 .DS_Store
 node_modules
+
+.claude

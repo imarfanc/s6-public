@@ -10,6 +10,7 @@ Deno.test("discovery exposes the public apps", async () => {
   assertEquals(response.status, 200);
   const body = await response.json();
   assertEquals(body.apps.map((app: { id: string }) => app.id), [
+    "app-settings1",
     "homebrew2",
     "macos-installer-guide",
     "todo1",
@@ -19,7 +20,7 @@ Deno.test("discovery exposes the public apps", async () => {
       name: space.name,
       locked: space.locked,
     })),
-    [{ name: "Examples", locked: false }, { name: "Local", locked: false }],
+    [{ name: "Examples", locked: false }, { name: "macos1", locked: false }],
   );
   assertEquals(
     body.appspaces.some((space: Record<string, unknown>) =>
@@ -34,6 +35,8 @@ Deno.test("gallery and app assets are public", async () => {
     const path of [
       "/",
       "/apps/todo1/",
+      "/apps/app-settings1/",
+      "/apps/app-settings1/app.js",
       "/apps/macos-installer-guide/",
       "/apps/todo1/index.html",
       "/shared/store.js",

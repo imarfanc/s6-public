@@ -5,9 +5,12 @@ appspaces:
   - name: Local
     icon: lucide:monitor
     local_only: true
+  - name: macos1
+    icon: lucide:monitor
+    local_only: true
 sections:
   - name: testing
     icon: lucide:flask-conical
-  - name: "Developer Tools"
+  - name: "tools"
     icon: "ph:terminal-window"
     color: "#6fd6c4"

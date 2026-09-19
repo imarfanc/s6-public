@@ -9,13 +9,6 @@
       "localOnly": false,
       "sections": [
         {
-          "name": "Developer Tools",
-          "sort_name": "Developer Tools",
-          "icon": "ph:terminal-window",
-          "color": "#6fd6c4",
-          "sections": []
-        },
-        {
           "name": "testing",
           "sort_name": "testing",
           "icon": "lucide:flask-conical",
@@ -25,15 +18,15 @@
       ]
     },
     {
-      "name": "Local",
+      "name": "macos1",
       "icon": "lucide:monitor",
       "color": "",
       "locked": false,
       "localOnly": true,
       "sections": [
         {
-          "name": "Developer Tools",
-          "sort_name": "Developer Tools",
+          "name": "tools",
+          "sort_name": "tools",
           "icon": "ph:terminal-window",
           "color": "#6fd6c4",
           "sections": []
@@ -43,6 +36,36 @@
   ],
   "apps": [
     {
+      "id": "app-settings1",
+      "name": "App Settings 1",
+      "sort_name": "App Settings 1",
+      "description": "Verify and apply personal macOS settings for Chrome and Keyboard Maestro.",
+      "updated": "",
+      "icon": "lucide:monitor",
+      "color": "#537b67",
+      "appspace": "macos1",
+      "sections": [
+        "tools"
+      ],
+      "tags": [
+        "setup",
+        "preferences",
+        "chrome",
+        "keyboard maestro",
+        "scripts"
+      ],
+      "path": "app-settings1",
+      "url": "/apps/app-settings1/index.html",
+      "store": "",
+      "db": "",
+      "children": [],
+      "aliases": [
+        "app-settings"
+      ],
+      "backend": "apps/app-settings1/server/route.ts",
+      "status": "active"
+    },
+    {
       "id": "homebrew2",
       "name": "homebrew2",
       "sort_name": "homebrew2",
@@ -50,9 +73,9 @@
       "updated": "2026-09-15",
       "icon": "lucide:box",
       "color": "#537b67",
-      "appspace": "Local",
+      "appspace": "macos1",
       "sections": [
-        "Developer Tools"
+        "tools"
       ],
       "tags": [
         "homebrew",
@@ -76,12 +99,12 @@
       "name": "macOS Installer Guide",
       "sort_name": "macOS Installer Guide",
       "description": "Terminal-first bootable USB walkthrough, IPSW guidance, and verification after every task.",
-      "updated": "",
+      "updated": "2026-09-15",
       "icon": "ph:terminal-window",
       "color": "#176b58",
-      "appspace": "Examples",
+      "appspace": "macos1",
       "sections": [
-        "Developer Tools"
+        "tools"
       ],
       "tags": [
         "macOS",

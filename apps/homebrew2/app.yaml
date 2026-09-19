@@ -4,10 +4,10 @@ status: active
 description: Browse packages, check local Homebrew installation status, and copy install commands.
 icon: lucide:box
 color: "#537b67"
-appspace: Local
+appspace: macos1
 backend: apps/homebrew2/server/route.ts
 sections:
-  - Developer Tools
+  - tools
 tags: [homebrew, packages, inventory, install]
 children:
   - hub.html

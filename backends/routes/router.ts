@@ -26,8 +26,10 @@ import { handleStatic } from "./static.ts";
 import { methodNotAllowed } from "../shared/http.ts";
 
 import { handleHomebrew } from "../../apps/homebrew2/server/route.ts";
+import { handleAppSettings } from "../../apps/app-settings1/server/route.ts";
 
 const HANDLERS = [
+  handleAppSettings,
   handleHomebrew,
   handleApps,
   handleData,

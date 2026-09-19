@@ -1,11 +1,11 @@
 {
     "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v11/terminal-keeper.json",
     "theme": "tribe",
-    "active": "t5",
+    "active": "s6p",
     "activateOnStartup": true,
     "keepExistingTerminals": false,
     "sessions": {
-        "t5": [
+        "s6p": [
             {
                 "name": "t5",
                 "autoExecuteCommands": true,
@@ -124,6 +124,15 @@
                 "color": "terminal.ansiBlue",
                 "commands": [
                     "deno task start"
+                ]
+            },
+            {
+                "name": "vt",
+                "autoExecuteCommands": false,
+                "icon": "versions",
+                "color": "terminal.ansiMagenta",
+                "commands": [
+                    "vt push && vt push"
                 ]
             }
         ]
