@@ -1,11 +1,11 @@
 id: app-settings1
 name: App Settings 1
 status: active
-description: Verify and apply personal macOS settings for Chrome and Keyboard Maestro.
+description: Set up Chrome profiles and personal macOS settings for Chrome and Keyboard Maestro.
 icon: lucide:monitor
 color: "#537b67"
 appspace: macos1
 sections: [tools]
-tags: [setup, preferences, chrome, keyboard maestro, scripts]
+tags: [setup, preferences, chrome, keyboard maestro, profiles, scripts]
 backend: apps/app-settings1/server/route.ts
 aliases: [app-settings]

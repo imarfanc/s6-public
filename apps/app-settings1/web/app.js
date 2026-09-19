@@ -1,7 +1,10 @@
+import { setupProfiles } from './profiles.js';
+import { setupAiProfiles } from './ai-profiles.js';
+import { icon } from './icons.js';
 const running = new Set();
 const entries = [
-  { id: 'chrome', name: 'Google Chrome', target: 'Warn Before Quitting → Disabled', description: 'Quit with ⌘Q without the hold-to-quit warning.', manual: 'Chrome menu → Warn Before Quitting (⌘Q): unchecked.' },
-  { id: 'keyboard-maestro', name: 'Keyboard Maestro', target: 'Status Menu Icon → ⌘ Command', description: 'Use the Command symbol for the menu bar icon.', manual: 'Preferences → General → Status Menu Icon → Command. This is separate from Display Status Menu (for example, By Group).' },
+  { id: 'chrome', icon: 'simple-icons:googlechrome', name: 'Google Chrome', target: 'Warn Before Quitting → Disabled', description: 'Quit with ⌘Q without the hold-to-quit warning.', manual: 'Chrome menu → Warn Before Quitting (⌘Q): unchecked.' },
+  { id: 'keyboard-maestro', icon: 'lucide:keyboard', name: 'Keyboard Maestro', target: 'Status Menu Icon → ⌘ Command', description: 'Use the Command symbol for the menu bar icon.', manual: 'Preferences → General → Status Menu Icon → Command. This is separate from Display Status Menu (for example, By Group).' },
 ];
 const tablist = document.querySelector('[role=tablist]');
 for (const entry of entries) {
@@ -9,7 +12,7 @@ for (const entry of entries) {
   tab.role = 'tab';
   tab.id = `${entry.id}-tab`;
   tab.setAttribute('aria-controls', entry.id);
-  tab.innerHTML = `<span class="dot" id="${entry.id}-dot" aria-hidden="true"></span>${entry.name}`;
+  tab.innerHTML = `${icon(entry.icon)}${entry.name}<span class="dot" id="${entry.id}-dot" aria-hidden="true"></span>`;
   tab.onclick = () => select(entry.id);
   tablist.append(tab);
 
@@ -19,15 +22,18 @@ for (const entry of entries) {
   article.setAttribute('aria-labelledby', tab.id);
   article.innerHTML = `<div class="head"><h2>${entry.name}</h2><span class="badge" id="${entry.id}-badge">Not checked</span></div>
 <div class="body"><p>${entry.description}</p><dl class="readout"><dt>Setting</dt><dd>${entry.target.split(' → ')[0]}</dd><dt>Target</dt><dd class="want">${entry.target.split(' → ')[1]}</dd><dt>Saved</dt><dd id="${entry.id}-current">—</dd></dl><p class="manual">By hand: ${entry.manual}</p></div>
-<ol class="steps"><li><button data-action="quit">Quit ${entry.name}</button></li><li class="primary"><button class="primary" data-action="apply">Run setup</button></li><li><button data-action="open">Open ${entry.name}</button></li></ol>
-<div class="foot"><output id="${entry.id}-result" aria-live="polite"></output><button data-action="verify">Verify</button></div>`;
+<ol class="steps"><li><button data-action="quit">${icon('lucide:power')}Quit ${entry.name}</button></li><li class="primary"><button class="primary" data-action="apply">${icon('lucide:wand-sparkles')}Run setup</button></li><li><button data-action="open">${icon('lucide:app-window')}Open ${entry.name}</button></li></ol>
+<div class="foot"><output id="${entry.id}-result" aria-live="polite"></output><button data-action="verify">${icon('lucide:circle-check')}Verify</button></div>`;
   document.querySelector('#settings').append(article);
   for (const button of article.querySelectorAll('[data-action]')) button.onclick = () => run(entry, button.dataset.action);
 }
 
+const profilePanel = setupProfiles(select);
+setupAiProfiles(select);
+const tabs = [...entries, { id: 'chrome-profiles' }, { id: 'ai-profiles' }];
 function select(id, focus = false) {
-  if (!entries.some(entry => entry.id === id)) id = entries[0].id;
-  for (const entry of entries) {
+  if (!tabs.some(entry => entry.id === id)) id = tabs[0].id;
+  for (const entry of tabs) {
     const on = entry.id === id;
     const tab = document.getElementById(`${entry.id}-tab`);
     tab.setAttribute('aria-selected', on);
@@ -41,8 +47,8 @@ tablist.onkeydown = (event) => {
   const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
   if (!step) return;
   event.preventDefault();
-  const index = entries.findIndex(entry => document.getElementById(`${entry.id}-tab`) === document.activeElement);
-  select(entries[(index + step + entries.length) % entries.length].id, true);
+  const index = tabs.findIndex(entry => document.getElementById(`${entry.id}-tab`) === document.activeElement);
+  select(tabs[(index + step + tabs.length) % tabs.length].id, true);
 };
 select(location.hash.slice(1));
 
@@ -65,7 +71,9 @@ async function run(entry, action) {
     if ('matches' in data) {
       badge.textContent = data.matches ? 'Matches target' : 'Needs attention';
       badge.dataset.match = dot.dataset.match = String(data.matches);
-      document.getElementById(`${entry.id}-current`).textContent = data.current;
+      const current = document.getElementById(`${entry.id}-current`);
+      current.textContent = data.current;
+      current.dataset.state = data.matches ? 'ok' : 'bad';
       result.textContent = `${data.note}${data.backup ? ` Backup: ${data.backup}` : ''}`;
     } else {
       badge.textContent = previous;
@@ -79,9 +87,9 @@ async function run(entry, action) {
 }
 document.querySelector('#verify-all').onclick = async (event) => {
   event.target.disabled = true;
-  try { await Promise.all(entries.map(entry => run(entry, 'verify'))); }
+  try { await Promise.all([...entries.map(entry => run(entry, 'verify')), profilePanel.verifyAll()]); }
   finally { event.target.disabled = false; }
 };
 
 // Initial inspection is read-only; setup runs only on a button click.
-await Promise.all(entries.map(entry => run(entry, 'verify')));
+await Promise.all([...entries.map(entry => run(entry, 'verify')), profilePanel.verifyAll()]);
