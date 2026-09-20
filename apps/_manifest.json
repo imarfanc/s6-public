@@ -14,6 +14,13 @@
           "icon": "lucide:flask-conical",
           "color": "",
           "sections": []
+        },
+        {
+          "name": "tools",
+          "sort_name": "tools",
+          "icon": "ph:terminal-window",
+          "color": "#6fd6c4",
+          "sections": []
         }
       ]
     },
@@ -40,7 +47,7 @@
       "name": "App Settings 1",
       "sort_name": "App Settings 1",
       "description": "Set up Chrome profiles and personal macOS settings for Chrome and Keyboard Maestro.",
-      "updated": "2026-09-19",
+      "updated": "2026-09-20",
       "icon": "lucide:monitor",
       "color": "#537b67",
       "appspace": "macos1",
@@ -121,6 +128,33 @@
       "children": [],
       "aliases": [],
       "backend": "",
+      "status": ""
+    },
+    {
+      "id": "pages-lite",
+      "name": "Pages Lite",
+      "sort_name": "Pages Lite",
+      "description": "A simple library of HTML pages and Markdown notes from a data folder.",
+      "updated": "",
+      "icon": "lucide:app-window",
+      "color": "#497866",
+      "appspace": "Examples",
+      "sections": [
+        "tools"
+      ],
+      "tags": [
+        "html",
+        "markdown",
+        "files",
+        "reader"
+      ],
+      "path": "pages-lite",
+      "url": "/apps/pages-lite/index.html",
+      "store": "",
+      "db": "",
+      "children": [],
+      "aliases": [],
+      "backend": "apps/pages-lite/server/route.ts",
       "status": ""
     },
     {

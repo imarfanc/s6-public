@@ -13,6 +13,7 @@ Deno.test("discovery exposes the public apps", async () => {
     "app-settings1",
     "homebrew2",
     "macos-installer-guide",
+    "pages-lite",
     "todo1",
   ]);
   assertEquals(
