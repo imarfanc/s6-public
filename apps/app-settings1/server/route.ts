@@ -1,6 +1,8 @@
+import { launchAiSearch } from "./ai-search.ts";
 import { json, methodNotAllowed } from "../../../backends/shared/http.ts";
 import { ON_VAL_TOWN } from "../../../backends/shared/files.ts";
 import { controlApp, runSetting } from "./settings.ts";
+import { runSearch, verifyAllSearch } from "./search.ts";
 import { launchAiProfile, type SignIn, signInOptions } from "./ai-profiles.ts";
 import { profileName, runProfiles } from "./profiles.ts";
 
@@ -10,6 +12,8 @@ export async function handleAppSettings(
   control = controlApp,
   profiles = runProfiles,
   launchAi = launchAiProfile,
+  search = runSearch,
+  aiSearch = launchAiSearch,
 ): Promise<Response | null> {
   const path = new URL(request.url).pathname;
   if (!path.startsWith("/api/apps/app-settings1/")) return null;
@@ -45,6 +49,29 @@ export async function handleAppSettings(
     } catch (error) {
       return json(
         { error: error instanceof Error ? error.message : "Profile operation failed." },
+        503,
+      );
+    }
+  }
+  const searchMatch = path.match(
+    /^\/api\/apps\/app-settings1\/chrome-search\/(verify|verify-all|open|ai-apply|ai-all)$/,
+  );
+  if (searchMatch) {
+    const action = searchMatch[1] as "verify" | "verify-all" | "open" | "ai-apply" | "ai-all";
+    const method = action === "verify" || action === "verify-all" ? "GET" : "POST";
+    if (request.method !== method) return methodNotAllowed(method);
+    if (ON_VAL_TOWN) return json({ error: "Run this app locally on your Mac." }, 503);
+    try {
+      return json(
+        action === "ai-apply" || action === "ai-all"
+          ? await aiSearch(action === "ai-all")
+          : action === "verify-all"
+          ? await verifyAllSearch()
+          : await search(action),
+      );
+    } catch (error) {
+      return json(
+        { error: error instanceof Error ? error.message : "Search engine check failed." },
         503,
       );
     }

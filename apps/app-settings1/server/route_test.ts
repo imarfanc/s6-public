@@ -56,3 +56,20 @@ Deno.test("settings API inherits local-only and cross-origin gates", async () =>
     await response.body?.cancel();
   }
 });
+Deno.test("search engine reads Chrome's saved choice without guessing", async () => {
+  const { searchEngine, isDuckDuckGo } = await import("./search.ts");
+  assertEquals(searchEngine({}), null);
+  assertEquals(isDuckDuckGo(searchEngine({})), false);
+  const ddg = searchEngine({
+    default_search_provider_data: {
+      template_url_data: { short_name: "DuckDuckGo", keyword: "duckduckgo.com" },
+    },
+  });
+  assertEquals(isDuckDuckGo(ddg), true);
+  assertEquals(
+    isDuckDuckGo(searchEngine({
+      default_search_provider_data: { template_url_data: { short_name: "Google" } },
+    })),
+    false,
+  );
+});

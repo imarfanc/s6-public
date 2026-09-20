@@ -87,6 +87,7 @@ output[data-state]{display:flex;gap:8px;align-items:baseline;font-weight:500}
 output[data-state]::before{content:"";flex:none;width:8px;height:8px;border-radius:50%;background:currentColor;transform:translateY(-1px)}
 output[data-state=ok]{color:var(--ok)}output[data-state=pending]{color:var(--warn)}output[data-state=bad]{color:var(--bad)}
 .readout dd[data-state]{font-weight:600}.readout dd[data-state=ok]{color:var(--ok)}.readout dd[data-state=bad]{color:var(--bad)}
+.extra{border-top:1px solid var(--line)}.extra h3{display:flex;align-items:center;gap:8px}.extra .readout{margin-top:12px}.extra .profile-actions{margin:14px 0 10px}
 </style>
 </head>
 <body><div class="shell">
