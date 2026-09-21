@@ -10,7 +10,7 @@ export async function handlePagesLite(request: Request): Promise<Response | null
   if (request.method !== "GET") return methodNotAllowed("GET");
   try {
     const files = (await listPaths())
-      .filter((path) => path.startsWith(ROOT) && /\.(html?|md)$/i.test(path))
+      .filter((path) => path.startsWith(ROOT) && /\.(html?|md|toml|json)$/i.test(path))
       .map((path) => path.slice(ROOT.length))
       .filter((path) => !path.split("/").some((part) => part.startsWith(".")))
       .sort((a, b) => a.localeCompare(b));

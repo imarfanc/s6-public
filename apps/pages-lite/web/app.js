@@ -1,8 +1,14 @@
-import { markdown } from './markdown.js';
+import { markdown, escapeHTML } from './markdown.js';
 const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
 let files = [], selected = '', filter = 'all', mode = 'preview', content = null, requestId = 0;
-const type = name => /\.md$/i.test(name) ? 'md' : 'html';
+const type = name => name.split('.').pop().toLowerCase().replace(/^htm$/, 'html');
+const kinds = {html: 'HTML PAGE', md: 'MARKDOWN NOTE', toml: 'TOML FILE', json: 'JSON FILE'};
+function preview(name, text) {
+  if (type(name) === 'html') return text;
+  if (type(name) === 'md') return markdown(text);
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="color-scheme" content="light dark"><style>:root{color-scheme:light dark}body{margin:0;padding:24px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.7 ui-monospace,monospace}</style><body><pre>${escapeHTML(text)}</pre></body></html>`;
+}
 function status(message) { $('#status').textContent = message; $('#status').hidden = !message; }
 function view() {
   $('#preview').hidden = content === null || mode !== 'preview';
@@ -19,12 +25,12 @@ function list() {
     const label=document.createElement('span');label.textContent=name;
     button.append(badge,label);button.onclick=()=>open(name);return button;
   }));
-  if(!visible.length) {const p=document.createElement('p');p.className='muted';p.textContent=files.length?'No matching files. Try another search.':'No files yet. Add HTML or Markdown to the data folder.';$('#files').append(p);}
+  if(!visible.length) {const p=document.createElement('p');p.className='muted';p.textContent=files.length?'No matching files. Try another search.':'No files yet. Add HTML, Markdown, TOML, or JSON to the data folder.';$('#files').append(p);}
 }
 async function get(url) {const response=await fetch(url,{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error || 'Could not load files.');return data;}
 async function open(name) {
-  const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=type(name)==='md'?'MARKDOWN NOTE':'HTML PAGE';status('Loading document…');
-  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;$('#source').textContent=content;$('#preview').srcdoc=type(name)==='md'?markdown(content):content;history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
+  const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=kinds[type(name)];status('Loading document…');
+  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;$('#source').textContent=content;$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
   catch(error){if(id===requestId)status(error.message);}
 }
 async function refresh() {

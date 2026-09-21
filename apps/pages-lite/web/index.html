@@ -13,9 +13,9 @@
   <main class="workspace">
     <aside aria-label="File library">
       <label for="search">Find a page</label><input id="search" type="search" placeholder="Search filenames…">
-      <div class="filters" role="group" aria-label="File type"><button data-filter="all" aria-pressed="true">All</button><button data-filter="html" aria-pressed="false">HTML</button><button data-filter="md" aria-pressed="false">Markdown</button></div>
+      <div class="filters" role="group" aria-label="File type"><button data-filter="all" aria-pressed="true">All</button><button data-filter="html" aria-pressed="false">HTML</button><button data-filter="md" aria-pressed="false">Markdown</button><button data-filter="toml" aria-pressed="false">TOML</button><button data-filter="json" aria-pressed="false">JSON</button></div>
       <p id="count" class="muted" aria-live="polite">Loading files…</p><nav id="files" aria-label="Files"></nav>
-      <p class="folder-note">A folder, a few files, a place to read.<br>Add <code>.html</code> or <code>.md</code> files to <code>apps/pages-lite/data/</code>, then refresh.</p>
+      <p class="folder-note">A folder, a few files, a place to read.<br>Add <code>.html</code>, <code>.htm</code>, <code>.md</code>, <code>.toml</code>, or <code>.json</code> files to <code>apps/pages-lite/data/</code>, then refresh.</p>
     </aside>
     <section class="reader" aria-label="Document reader">
       <header class="reader-bar"><div><span class="eyebrow" id="kind">LIBRARY</span><h2 id="title">Choose a file</h2></div><div class="views" role="group" aria-label="Document view"><button id="preview-mode" aria-pressed="true">Preview</button><button id="source-mode" aria-pressed="false">Source</button></div></header>
