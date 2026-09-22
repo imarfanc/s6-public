@@ -92,3 +92,22 @@ updated tree does not.
 `color-scheme: light dark` plus `light-dark()` tokens on `:root`, overridden by
 `body[data-preview-tone]`. Do not add a second theme mechanism: no class toggles, no JS theme state,
 no media-query duplicates beyond the one dark `--glass-bg` override.
+
+## History
+
+History groups each app by its latest opening, with local-calendar Today and Yesterday boundaries.
+Today has buckets for under 5 minutes, 5 to 10 minutes, 10 to 30 minutes, and Earlier today. Older
+buckets cover days 2–3, 4–7, 8–30, 31–365, and Older. Empty buckets are hidden. The view refreshes
+every 30 seconds while visible and when returning to the page. Existing browser history without
+timestamps remains under Unknown date until reopened.
+
+The `d` shortcut cycles indentation for the active sidebar tab; each tab remembers its own value.
+History uses the same group disclosure controls and `x` shortcut as the other views.
+
+`/api/shell-history` reads gallery-wide history, restricted to accessible appspaces. A PUT to
+`/api/shell-history/<app path>` merges that app's last-opened timestamp. Each app has its own blob
+under `shell-history/`; storage uses the existing adapter, local disk on localhost and Val Town
+blobs when hosted. History is shared between visitors to the same gallery, not a personal account.
+Separate local servers do not sync with one another. Browser state caches timestamps and queues
+failed writes for retry. A sync failure appears in History. Grants and local-only rules also apply
+to history reads and writes.

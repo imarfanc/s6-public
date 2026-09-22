@@ -229,8 +229,9 @@ export async function requiredAppspace(request: Request): Promise<AppspaceScope 
     return app ? { appspace: app.appspace, app } : null;
   }
 
-  if (pathname.startsWith(DB_ROUTE)) {
-    const rest = restOf(pathname, DB_ROUTE);
+  if (pathname.startsWith(DB_ROUTE) || pathname.startsWith("/api/shell-history/")) {
+    const prefix = pathname.startsWith(DB_ROUTE) ? DB_ROUTE : "/api/shell-history/";
+    const rest = restOf(pathname, prefix);
     if (rest === null) return null;
     const path = rest.split("/").filter(Boolean).join("/");
     if (!path) return null;
@@ -499,4 +500,16 @@ export async function handleAuth(request: Request): Promise<Response | null> {
   }
 
   return null;
+}
+/** Gallery history follows the same appspace grants and local-only gates as app data. */
+export async function historyVisibleApps(request: Request): Promise<App[]> {
+  const { apps } = await discover();
+  const allowed = new Set<string>();
+  for (const appspace of new Set(apps.map((app) => app.appspace))) {
+    const scope = { appspace, app: null };
+    if (!await enforceAppspace(request, scope) && !await enforceLocalOnly(request, scope)) {
+      allowed.add(appspace);
+    }
+  }
+  return apps.filter((app) => allowed.has(app.appspace));
 }

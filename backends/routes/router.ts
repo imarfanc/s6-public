@@ -18,6 +18,7 @@ import {
   requiredAppspace,
 } from "../shared/auth.ts";
 import { handleApps } from "./apps.ts";
+import { handleShellHistory } from "./shell-history.ts";
 import { handleData } from "./data.ts";
 import { handleDb } from "./db.ts";
 import { handleProjectFiles } from "./project-files.ts";
@@ -35,6 +36,7 @@ const HANDLERS = [
   handleHomebrew,
   handleApps,
   handleData,
+  handleShellHistory,
   handleDb,
   handleSqliteInspect,
   handleProjectFiles,

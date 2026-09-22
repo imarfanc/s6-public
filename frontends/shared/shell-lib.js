@@ -61,3 +61,67 @@ export function matchesSearch(app, search) {
 export function rememberRecent(recent, id, limit) {
   return [id, ...recent.filter((entry) => entry !== id)].slice(0, limit);
 }
+
+/**
+ * @template T
+ * @typedef {{id: string, label: string, icon: string, apps: T[], children: HistoryNode<T>[]}} HistoryNode
+ */
+
+/**
+ * One bucket per app, ordered by its last opening. Calendar days use local time.
+ * @template {{id: string}} T
+ * @param {T[]} apps
+ * @param {Record<string, number>} opened
+ * @param {number} now
+ * @returns {HistoryNode<T>[]}
+ */
+export function buildHistoryTree(apps, opened, now = Date.now()) {
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  const dayStart = (days) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - days);
+    return date.getTime();
+  };
+  /** @returns {HistoryNode<T>} */
+  const node = (id, label) => ({
+    id: `recent:${id}`,
+    label,
+    icon: "mdi:calendar",
+    apps: [],
+    children: [],
+  });
+  const current = node("today", "Today");
+  current.children = [
+    node("5m", "Last 5 mins"),
+    node("10m", "5–10 mins"),
+    node("30m", "10–30 mins"),
+    node("earlier", "Earlier today"),
+  ];
+  /** @type {Array<[number, HistoryNode<T>]>} */
+  const older = [
+    [dayStart(1), node("yesterday", "Yesterday")],
+    [dayStart(3), node("3d", "Last 3 days")],
+    [dayStart(7), node("week", "Last week")],
+    [dayStart(30), node("month", "Last month")],
+    [dayStart(365), node("year", "Last year")],
+    [-Infinity, node("older", "Older")],
+  ];
+  const unknown = node("unknown", "Unknown date");
+  const entries = apps.filter((app) => Object.hasOwn(opened, app.id))
+    .sort((a, b) => (opened[b.id] || 0) - (opened[a.id] || 0));
+  for (const app of entries) {
+    const time = opened[app.id];
+    if (!Number.isFinite(time) || time <= 0) {
+      unknown.apps.push(app);
+    } else if (time >= today.getTime()) {
+      const age = Math.max(0, now - time) / 60000;
+      current.children[age < 5 ? 0 : age < 10 ? 1 : age < 30 ? 2 : 3].apps.push(app);
+    } else {
+      older.find(([start]) => time >= start)[1].apps.push(app);
+    }
+  }
+  current.children = current.children.filter((child) => child.apps.length);
+  return [current, ...older.map(([, group]) => group), unknown]
+    .filter((group) => group.apps.length || group.children.length);
+}

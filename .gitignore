@@ -14,3 +14,6 @@ _other/scratch/**
 *.db-wal
 *.db-shm
 .fuse_hidden*
+
+# Runtime gallery history is not source or seed data.
+_other/data/*/blob/shell-history/

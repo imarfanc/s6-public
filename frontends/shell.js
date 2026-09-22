@@ -7,12 +7,12 @@
  */
 import { frontend } from "/shared/config.js";
 import {
+  buildHistoryTree,
   childLabel,
   isLightBackground,
   matchesSearch,
   nextIn,
   pathKey,
-  rememberRecent,
   spriteId,
 } from "/shared/shell-lib.js";
 
@@ -38,8 +38,9 @@ const INDENTS = ["roomy", "tight", "flat"];
 const SAVE_DELAY = 250;
 /** Must stay in step with the @media breakpoint in the stylesheet. */
 const MOBILE_QUERY = frontend.mobileQuery;
-/** How many apps "Recently opened" keeps. */
-const RECENT_LIMIT = 30;
+/** Refresh relative ages and history from other sessions. */
+const HISTORY_REFRESH = 30000;
+const HISTORY_URL = "/api/shell-history";
 const TOOLTIP_HIDE_DELAY = 150;
 
 /* Used when app.yaml or sections-metadata.yaml leaves a field out.
@@ -106,10 +107,13 @@ const defaultState = {
   view: "tree",
   width: "wide",
   indent: "roomy",
+  viewIndents: {},
   search: "",
   useFolderNames: false,
   collapsed: [],
   recent: [],
+  opened: {},
+  pendingHistory: {},
   activeApp: null,
   /** Which of the active app's `children:` pages is open, if any. */
   activeChild: null,
@@ -713,7 +717,9 @@ function renderApp(app) {
     event.preventDefault();
     void (async () => {
       if (!(await ensureAppspaceGrant(app.appspace))) return;
+      recordOpening(app);
       open(app.url, "_blank", "noopener");
+      renderTree();
     })();
   });
 
@@ -776,12 +782,93 @@ function appById(id) {
   return apps.find((app) => app.id === id || (app.aliases ?? []).includes(id)) ?? null;
 }
 
+function historyNodes() {
+  return buildHistoryTree(
+    rootApps().filter((app) => isUnlocked(app.appspace) && matchesSearch(app, state.search)),
+    state.opened,
+  );
+}
+
+let historySyncing = false;
+let historyError = false;
+
 function renderRecent() {
-  const recent = [...new Set(state.recent.map((id) => appById(id)?.id).filter(Boolean))]
-    .map((id) => appById(id))
-    .filter((app) => matchesSearch(app, state.search));
-  if (!recent.length) return renderEmpty("No recently opened apps.");
-  for (const app of recent) refs.tree.append(renderApp(app));
+  if (historyError) {
+    const status = document.createElement("p");
+    status.id = "history-sync-status";
+    status.setAttribute("role", "status");
+    status.textContent =
+      "History sync unavailable. Changes are saved on this browser and will retry.";
+    refs.tree.append(status);
+  }
+  const nodes = historyNodes();
+  if (!nodes.length) return renderEmpty("No recently opened apps.");
+  for (const node of nodes) refs.tree.append(renderUpdatedNode(node));
+}
+
+function recordOpening(app) {
+  state.opened[app.id] = Date.now();
+  state.pendingHistory[app.id] = state.opened[app.id];
+  saveState();
+  void syncHistory();
+}
+
+/** Merge server timestamps and retry only unsaved openings, never replace remote history. */
+async function syncHistory() {
+  if (historySyncing || !manifest) return;
+  historySyncing = true;
+  const before = JSON.stringify(state.opened);
+  const previousError = historyError;
+  try {
+    for (const [id, timestamp] of Object.entries(state.pendingHistory)) {
+      const app = appById(id);
+      if (!app || !isUnlocked(app.appspace)) continue;
+      const response = await fetch(`${HISTORY_URL}/${app.path}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ opened: timestamp }),
+        keepalive: true,
+      });
+      if (!response.ok) throw new Error(`History save returned ${response.status}`);
+      if (state.pendingHistory[id] === timestamp) delete state.pendingHistory[id];
+    }
+    const response = await fetch(HISTORY_URL, { cache: "no-store" });
+    if (!response.ok) throw new Error(`History fetch returned ${response.status}`);
+    const remote = await response.json();
+    for (const [id, timestamp] of Object.entries(remote)) {
+      if (appById(id) && Number.isFinite(timestamp) && timestamp >= 0) {
+        state.opened[id] = Math.max(state.opened[id] || 0, timestamp);
+      }
+    }
+    historyError = false;
+  } catch (error) {
+    historyError = true;
+    console.warn("History sync failed", error);
+  } finally {
+    historySyncing = false;
+    saveState();
+    if (
+      state.view === "recent" &&
+      (before !== JSON.stringify(state.opened) || previousError !== historyError)
+    ) refreshHistory();
+  }
+}
+
+/** Preserve keyboard focus when time buckets change in the background. */
+function refreshHistory() {
+  if (state.view !== "recent" || document.hidden) return;
+  const focused = refs.tree.contains(document.activeElement) ? document.activeElement : null;
+  const id = focused?.id;
+  const groupId = focused?.closest(".tree-group")?.id;
+  const scroll = refs.tree.scrollTop;
+  renderTree();
+  const replacement = (id && document.getElementById(id)) ||
+    (groupId && document.getElementById(groupId)?.querySelector("button"));
+  if (focused) {
+    (replacement || refs.viewButtons.find((button) => button.dataset.view === "recent"))
+      ?.focus({ preventScroll: true });
+  }
+  refs.tree.scrollTop = scroll;
 }
 
 function parseTimestamp(value) {
@@ -974,6 +1061,7 @@ function syncCollapsed() {
 
 function renderTree() {
   hideTooltipNow();
+  refs.sidebar.dataset.indent = state.viewIndents[state.view] ?? state.indent;
   refs.tree.replaceChildren();
   refs.viewButtons.forEach((button) => {
     button.classList.toggle("active", button.dataset.view === state.view);
@@ -1019,7 +1107,7 @@ async function openApp(app, updateHash = true, child = null) {
   const name = child ? `${app.name} · ${childLabel(child)}` : app.name;
   state.activeApp = app.id;
   state.activeChild = child;
-  state.recent = rememberRecent(state.recent, app.id, RECENT_LIMIT);
+  recordOpening(app);
   resetPreviewBackground();
   applyAppColor(app.color);
   refs.previewFrame.hidden = false;
@@ -1071,13 +1159,14 @@ function cycleWidth() {
  * each other rather than bundled into one "compact" mode.
  */
 function setIndent(indent) {
-  state.indent = INDENTS.includes(indent) ? indent : INDENTS[0];
-  refs.sidebar.dataset.indent = state.indent;
+  const value = INDENTS.includes(indent) ? indent : INDENTS[0];
+  state.viewIndents[state.view] = value;
+  refs.sidebar.dataset.indent = value;
   saveState();
 }
 
 function cycleIndent() {
-  setIndent(nextIn(INDENTS, state.indent));
+  setIndent(nextIn(INDENTS, state.viewIndents[state.view] ?? state.indent));
 }
 
 function resetPreviewBackground() {
@@ -1155,6 +1244,7 @@ function pruneCollapsed() {
     }
   };
   walk(buildUpdatedTree(apps));
+  walk(buildHistoryTree(apps, state.opened));
   state.collapsed = state.collapsed.filter((id) => valid.has(id));
 }
 
@@ -1170,7 +1260,7 @@ function allSectionIds(sections, appspace, parents = []) {
 const HOTKEYS = [
   ["/", "Show this help", () => toggleHelp()],
   ["s", "Cycle the sidebar size", () => cycleWidth()],
-  ["d", "Cycle the tree indentation", () => cycleIndent()],
+  ["d", "Cycle indentation in the active view", () => cycleIndent()],
   ["k", "Focus the search box", () => focusSearch()],
   ["x", "Collapse or expand all sections", () => toggleAllSections()],
   ["Esc", "Close help, menus and cards", null],
@@ -1246,6 +1336,7 @@ function bindEvents() {
   refs.viewButtons.forEach((button) =>
     button.addEventListener("click", () => {
       state.view = button.dataset.view;
+      if (state.view === "recent") void syncHistory();
       saveState();
       renderTree();
     })
@@ -1322,7 +1413,7 @@ function bindEvents() {
 async function init() {
   bindEvents();
   setWidth(state.width);
-  setIndent(state.indent);
+  setIndent(state.viewIndents[state.view] ?? state.indent);
   refs.search.value = state.search;
   await loadSprite();
   await loadSession();
@@ -1331,12 +1422,30 @@ async function init() {
     if (!response.ok) throw new Error(`Discovery returned ${response.status}`);
     manifest = await response.json();
     apps = manifest.apps;
+    // Old entries have no timestamps. Preserve them without inventing dates.
+    for (const id of state.recent) {
+      const app = appById(id);
+      if (app && !Object.hasOwn(state.opened, app.id)) {
+        state.opened[app.id] = 0;
+        state.pendingHistory[app.id] = 0;
+      }
+    }
+    state.recent = [];
     pruneCollapsed();
-    state.recent = [
-      ...new Set(
-        state.recent.map((id) => appById(id)?.id).filter(Boolean),
-      ),
-    ];
+    void syncHistory();
+    setInterval(() => {
+      if (!document.hidden) {
+        refreshHistory();
+        if (state.view === "recent" || Object.keys(state.pendingHistory).length) void syncHistory();
+      }
+    }, HISTORY_REFRESH);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) {
+        refreshHistory();
+        void syncHistory();
+      }
+    });
+    window.addEventListener("online", () => void syncHistory());
 
     if (
       !appspaceOptions().some((item) => item.name === state.selectedAppspace) ||

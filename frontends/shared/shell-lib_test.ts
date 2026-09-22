@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import {
+  buildHistoryTree,
   childLabel,
   isLightBackground,
   matchesSearch,
@@ -137,4 +138,52 @@ Deno.test("shell.js never passes matchesSearch as a bare callback", async () => 
       `matchesSearch(${args}) is missing the search argument`,
     );
   }
+});
+
+Deno.test("history advances at minute boundaries without duplicates", () => {
+  const now = new Date(2026, 8, 22, 12).getTime();
+  const minutes = [0, 4.99, 5, 9.99, 10, 29.99, 30];
+  const apps = minutes.map((_, i) => ({ id: String(i) }));
+  const opened = Object.fromEntries(minutes.map((age, i) => [String(i), now - age * 60000]));
+  const nodes = buildHistoryTree(apps, opened, now);
+  assertEquals(nodes.map((node) => node.label), ["Today"]);
+  assertEquals(nodes[0]!.children.map((node) => node.apps.map((app) => app.id)), [
+    ["0", "1"],
+    ["2", "3"],
+    ["4", "5"],
+    ["6"],
+  ]);
+  assertEquals(
+    buildHistoryTree([{ id: "0" }], { "0": now }, now + 5 * 60000)[0]!
+      .children[0]!.id,
+    "recent:10m",
+  );
+});
+
+Deno.test("history uses calendar midnight and preserves old undated history", () => {
+  const now = new Date(2026, 8, 22, 0, 2).getTime();
+  const days = [1, 2, 3, 4, 7, 8, 30, 31, 365, 366];
+  const opened: Record<string, number> = { unknown: 0 };
+  for (const day of days) opened[String(day)] = new Date(2026, 8, 22 - day, 23, 59).getTime();
+  const apps = Object.keys(opened).map((id) => ({ id }));
+  const nodes = buildHistoryTree(apps, opened, now);
+  assertEquals(nodes.map((node) => node.label), [
+    "Yesterday",
+    "Last 3 days",
+    "Last week",
+    "Last month",
+    "Last year",
+    "Older",
+    "Unknown date",
+  ]);
+  assertEquals(nodes.map((node) => node.apps.map((app) => app.id)), [
+    ["1"],
+    ["2", "3"],
+    ["4", "7"],
+    ["8", "30"],
+    ["31", "365"],
+    ["366"],
+    ["unknown"],
+  ]);
+  assertEquals(buildHistoryTree([{ id: "unopened" }], opened, now), []);
 });
