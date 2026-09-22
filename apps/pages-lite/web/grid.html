@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Pages Grid</title>
+  <link rel="stylesheet" href="grid.css">
+  <script type="module" src="grid.js"></script>
+</head>
+<body>
+  <main>
+    <header><h1>Pages</h1><div class="tools"><a href="index.html">List view</a><input id="search" type="search" aria-label="Search files" placeholder="Search files…"><button id="refresh" type="button">Refresh</button></div></header>
+    <div class="options"><label><input id="group-folders" type="checkbox" checked> Group by folder</label><label>Open in <select id="open-mode"><option value="standalone">Standalone tab</option><option value="dialog">Dialog</option></select></label></div>
+    <p id="status" role="status">Loading files…</p>
+    <section id="grid" aria-label="File previews"></section>
+    <footer>Add .html, .htm, .md, .toml, or .json files to <code>apps/pages-lite/data/</code></footer>
+  </main>
+  <dialog id="reader" aria-labelledby="reader-title">
+    <div class="reader-bar"><h2 id="reader-title"></h2><a id="standalone" target="_blank" rel="noopener">Open standalone ↗</a><button id="close" autofocus>Close</button></div>
+    <iframe id="full-preview" title="Full document preview" ></iframe>
+  </dialog>
+</body>
+</html>

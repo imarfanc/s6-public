@@ -78,7 +78,7 @@
       "name": "homebrew2",
       "sort_name": "homebrew2",
       "description": "Browse packages, check local Homebrew installation status, and copy install commands.",
-      "updated": "2026-09-19",
+      "updated": "2026-09-20",
       "icon": "lucide:box",
       "color": "#537b67",
       "appspace": "macos1",
@@ -152,7 +152,9 @@
       "url": "/apps/pages-lite/index.html",
       "store": "",
       "db": "",
-      "children": [],
+      "children": [
+        "grid.html"
+      ],
       "aliases": [],
       "backend": "apps/pages-lite/server/route.ts",
       "status": ""

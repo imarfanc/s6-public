@@ -2,7 +2,7 @@
 .env
 .env.*
 !.env.example
-.vt/
+# .vt/
 node_modules/
 _other/data/**
 !_other/data/README.md

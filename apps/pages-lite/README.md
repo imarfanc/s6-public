@@ -22,3 +22,14 @@ not resolved from the data folder. Markdown previews use the same sandbox.
 
 TOML and JSON previews display escaped, preformatted text without parsing or executing it. Source
 shows the original contents, including any invalid syntax.
+
+## Grid frontend
+
+Choose the **grid** child under Pages Lite, or open `/apps/pages-lite/grid.html`. This alternate
+frontend uses the same data folder and API as the default list view. It follows the Pages Grid
+frontend in `s6-local`, with preview cards, filename search, optional folder grouping, and a choice
+of a dialog or standalone reader. Grouping and opening preferences are saved in the browser.
+
+Thumbnails disable scripts. Full HTML documents use an opaque-origin sandbox with scripts enabled.
+The grid reader renders escaped Markdown, TOML, and JSON with code highlighting and copy buttons.
+Its renderer lives in `web/grid-markdown.js`; the default frontend keeps `web/markdown.js`.
