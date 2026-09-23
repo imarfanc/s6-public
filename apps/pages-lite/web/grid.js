@@ -1,4 +1,4 @@
-import { fileType, preview as renderPreview } from './preview.js';
+import { fileType, standaloneURL, preview as renderPreview } from './preview.js';
 const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
 let entries = [], generation = 0;
@@ -41,8 +41,8 @@ function arrange() {
   filter();
 }
 function show(entry) {
-  if ($('#open-mode').value === 'standalone') { window.open(readerURL(entry.name), '_blank', 'noopener'); return; }
-  $('#standalone').href = readerURL(entry.name);
+  if ($('#open-mode').value === 'standalone') { window.open(standaloneURL(entry.name), '_blank', 'noopener'); return; }
+  $('#standalone').href = standaloneURL(entry.name);
   $('#reader-title').textContent = entry.name;
   $('#full-preview').src = readerURL(entry.name);
   $('#reader').showModal();

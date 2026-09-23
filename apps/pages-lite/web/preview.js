@@ -10,3 +10,7 @@ export function preview(name, text) {
   const fence = '`'.repeat(Math.max(3, ...Array.from(text.matchAll(/`+/g), match => match[0].length + 1)));
   return markdown(`${fence}${type}\n${text}\n${fence}`);
 }
+
+export const standaloneURL = name => fileType(name) === 'html'
+  ? `data/${name.split('/').map(encodeURIComponent).join('/')}`
+  : `reader.html?file=${encodeURIComponent(name)}`;

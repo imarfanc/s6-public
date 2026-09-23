@@ -9,6 +9,15 @@ function inline(text) {
 // Small tokenizer: comments, strings, numbers, shell variables and common keywords.
 // Escape every token before adding markup; document text never becomes executable HTML.
 export function highlight(code, language = '') {
+  if (/^(html|htm|xml)$/i.test(language)) {
+    return code.split(/(<!--[\s\S]*?-->|<![^>]*>|<\/?[A-Za-z][^>]*>)/g).map(part => {
+      if (part.startsWith('<!--')) return `<span class="token-comment">${escapeHTML(part)}</span>`;
+      if (!/^<\/?[A-Za-z!]/.test(part)) return escapeHTML(part);
+      return `<span class="token-keyword">${part.split(/("[^"]*"|'[^']*')/g).map(piece =>
+        /^["']/.test(piece) ? `<span class="token-string">${escapeHTML(piece)}</span>` : escapeHTML(piece)
+      ).join('')}</span>`;
+    }).join('');
+  }
   const shell = /^(sh|bash|zsh|shell|console|python|py|ruby|rb|yaml|yml|toml)$/i.test(language);
   const tokens = /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\/\/[^\n]*|\/\*[\s\S]*?\*\/|\#[^\n]*|\$[A-Za-z_][\w]*|\b\d+(?:\.\d+)?\b|\b(?:const|let|var|function|return|if|else|for|while|of|in|async|await|import|from|export|class|new|true|false|null|undefined|def|print|do|done|then|fi|echo|sudo|SELECT|FROM|WHERE)\b)/g;
   return code.split(tokens).map(token => {

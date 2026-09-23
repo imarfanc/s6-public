@@ -14,6 +14,11 @@ manifest is needed. The four bundled examples are two HTML pages and two Markdow
 Search filenames, filter by type, and switch between preview and source. The URL hash remembers the
 selected file. Edit documents on disk; this app does not write or delete files.
 
+Use **Open standalone** beside Preview and Source to open any supported file in a new tab. Markdown
+is rendered as a document; JSON and TOML use code highlighting and a Copy button, matching the grid
+reader. HTML opens directly at `/apps/pages-lite/data/<filename>.html`, without the reader wrapper.
+Embedded HTML previews still use an isolated sandbox.
+
 Markdown supports headings, paragraphs, ordered/unordered lists, emphasis, inline/fenced code,
 blockquotes, rules, and HTTP(S) links. It is a small subset, not full CommonMark; raw HTML is
 escaped. HTML previews permit scripts inside an opaque-origin sandbox, without parent-page access.

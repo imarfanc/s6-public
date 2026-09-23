@@ -1,4 +1,6 @@
 import { markdown, escapeHTML } from './markdown.js';
+import { standaloneURL } from './preview.js';
+import { highlight } from './grid-markdown.js';
 const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
 let files = [], selected = '', filter = 'all', mode = 'preview', content = null, requestId = 0;
@@ -11,6 +13,10 @@ function preview(name, text) {
 }
 function status(message) { $('#status').textContent = message; $('#status').hidden = !message; }
 function view() {
+  const standalone = $('#standalone');
+  standalone.hidden = content === null;
+  if (standalone.hidden) standalone.removeAttribute('href');
+  else standalone.href = standaloneURL(selected);
   $('#preview').hidden = content === null || mode !== 'preview';
   $('#source').hidden = content === null || mode !== 'source';
   $('#preview-mode').setAttribute('aria-pressed',mode === 'preview');
@@ -30,7 +36,7 @@ function list() {
 async function get(url) {const response=await fetch(url,{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error || 'Could not load files.');return data;}
 async function open(name) {
   const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=kinds[type(name)];status('Loading document…');
-  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;$('#source').textContent=content;$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
+  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;$('#source').innerHTML=highlight(content, type(name));$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
   catch(error){if(id===requestId)status(error.message);}
 }
 async function refresh() {
