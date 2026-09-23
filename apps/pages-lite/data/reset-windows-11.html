@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reset Windows 11</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f2f4f7, #0e131a);
+  --paper: light-dark(#ffffff, #161d27);
+  --ink: light-dark(#111a27, #e8edf4);
+  --muted: light-dark(#536074, #9fadbf);
+  --line: light-dark(#d8dee7, #2a3543);
+  --accent: light-dark(#0061c2, #72b6ff);
+  --accent-soft: light-dark(#e6f0fb, #172a42);
+  --ok: light-dark(#17753d, #6fd49a);
+  --ok-soft: light-dark(#e5f5ec, #14301f);
+  --stop: light-dark(#b42318, #ff8f85);
+  --stop-soft: light-dark(#fdecea, #3a1715);
+  --winre: #0b3f8f;
+  --winre-tile: #1a52a6;
+  --rail: 44px;
+  background: var(--bg);
+  overscroll-behavior-y: none;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+main { max-width: 720px; margin: 0 auto; padding: 40px 16px 64px; }
+h1, h2, h3 { font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; margin: 0; }
+p { margin: 0 0 12px; }
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+kbd, code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .92em; }
+kbd {
+  padding: 1px 7px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--paper);
+  white-space: nowrap;
+}
+b { font-weight: 650; }
+
+/* Opening */
+.kicker { color: var(--accent); font-size: 13px; font-weight: 650; letter-spacing: .02em; }
+h1 { font-size: clamp(36px, 8vw, 54px); line-height: 1.05; letter-spacing: -.03em; margin: 8px 0 16px; }
+.promise {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--ok-soft);
+  color: var(--ink);
+  font-size: 17px;
+  margin: 0 0 20px;
+}
+.promise::before {
+  content: "";
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 3px;
+  border-radius: 50%;
+  background: var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.5 10.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 20px no-repeat;
+}
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--line); }
+.facts div { background: var(--paper); padding: 12px 14px; }
+.facts dt { color: var(--muted); font-size: 13px; }
+.facts dd { margin: 2px 0 0; font-weight: 650; font-size: 17px; line-height: 1.3; }
+
+/* Jump bar */
+.jump {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 28px -16px 8px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.jump ol { display: flex; gap: 6px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
+.jump a {
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.jump a:hover { color: var(--ink); }
+.jump a[aria-current="true"] { background: var(--accent); border-color: var(--accent); color: var(--paper); }
+.jump .end a { color: var(--stop); }
+
+/* Steps */
+.steps { list-style: none; margin: 0; padding: 0; }
+.step {
+  position: relative;
+  padding: 28px 0 8px var(--rail);
+  scroll-margin-top: 64px;
+}
+.step::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 64px;
+  bottom: -28px;
+  border-left: 2px solid var(--line);
+}
+.step:last-child::before { display: none; }
+.num {
+  position: absolute;
+  left: 0;
+  top: 28px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--paper);
+  font-weight: 700;
+  font-size: 15px;
+}
+.step.prep .num { background: var(--paper); color: var(--accent); border: 2px solid var(--accent); }
+.step.final .num { background: var(--stop); }
+.step.after .num { background: var(--ok); }
+h2 { font-size: 23px; line-height: 1.25; letter-spacing: -.01em; padding-top: 2px; }
+.time { display: inline-block; margin: 4px 0 12px; color: var(--muted); font-size: 14px; }
+.do { font-size: 18px; }
+.aside { color: var(--muted); font-size: 15px; }
+
+/* Checklist */
+.checks { list-style: none; margin: 4px 0 12px; padding: 0; counter-reset: done; }
+.checks li + li { margin-top: 8px; }
+.checks label {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  cursor: pointer;
+}
+.checks input { flex: none; width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ok); }
+.checks input:checked { counter-increment: done; }
+.checks label:has(input:checked) { border-color: var(--ok); background: var(--ok-soft); }
+.checks label:has(input:checked) span { color: var(--muted); }
+.checks small { display: block; color: var(--muted); font-size: 14px; margin-top: 2px; }
+.tally { font-size: 14px; font-weight: 600; color: var(--muted); }
+.tally::before { content: counter(done) " of 3 done"; }
+.step.prep:not(:has(input:not(:checked))) .tally { color: var(--ok); }
+.step.prep:not(:has(input:not(:checked))) .tally::before { content: "All 3 done. Go to step 1."; }
+
+/* Command */
+.cmd {
+  display: flex;
+  align-items: stretch;
+  margin: 4px 0 14px;
+  border-radius: 12px;
+  background: light-dark(#111a27, #06090d);
+  color: #eef2f7;
+  border: 1px solid light-dark(transparent, #2a3543);
+  overflow: hidden;
+}
+.cmd code {
+  flex: 1;
+  padding: 16px 18px;
+  font-size: clamp(17px, 4.6vw, 22px);
+  letter-spacing: .01em;
+  user-select: all;
+  -webkit-user-select: all;
+  overflow-wrap: anywhere;
+}
+.cmd button {
+  flex: none;
+  padding: 0 18px;
+  border: 0;
+  border-left: 1px solid rgba(255,255,255,.18);
+  background: transparent;
+  color: inherit;
+  font: 600 14px/1 inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+.cmd button:hover { background: rgba(255,255,255,.1); }
+.parts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 0 0 14px; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+.parts code { color: var(--ink); }
+.alt { padding: 12px 14px; border: 1px dashed var(--line); border-radius: 10px; font-size: 15px; }
+.alt p { margin: 0; }
+
+/* Recovery screen replica */
+.screen {
+  margin: 4px 0 16px;
+  padding: 18px 18px 20px;
+  border-radius: 12px;
+  background: var(--winre);
+  color: #fff;
+  box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 8px 24px -12px rgba(11,63,143,.55);
+}
+.screen figcaption { font-size: 20px; font-weight: 300; margin-bottom: 14px; letter-spacing: -.005em; }
+.screen figcaption small { display: block; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; margin-bottom: 2px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tile {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 12px;
+  background: var(--winre-tile);
+  font-size: 15px;
+  line-height: 1.3;
+  opacity: .55;
+}
+.tile.go { opacity: 1; outline: 2px solid #fff; outline-offset: 2px; font-weight: 600; }
+.tile.go::after {
+  content: "Click";
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--winre);
+  font-size: 12px;
+  font-weight: 700;
+}
+.tile.maybe { opacity: 1; }
+.screen .fine { margin: 12px 0 0; font-size: 13px; opacity: .75; }
+
+/* Decision rows */
+.decide { margin: 0 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); overflow: hidden; }
+.decide div { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: center; padding: 12px 14px; }
+.decide div + div { border-top: 1px solid var(--line); }
+.decide dt { font-size: 15px; color: var(--muted); }
+.decide dd { margin: 0; font-weight: 650; text-align: right; }
+.decide dd::before { content: "Pick "; font-weight: 400; color: var(--muted); }
+.substep { margin: 20px 0 8px; font-size: 17px; }
+
+/* Final stop */
+.stop {
+  margin: 4px 0 16px;
+  padding: 16px 18px;
+  border: 2px solid var(--stop);
+  border-radius: 12px;
+  background: var(--stop-soft);
+}
+.stop h3 { color: var(--stop); font-size: 17px; margin-bottom: 6px; }
+.stop ul { margin: 0; padding-left: 20px; }
+.stop li + li { margin-top: 4px; }
+
+/* Waiting */
+.wait { list-style: none; margin: 4px 0 16px; padding: 0; border-left: 2px dotted var(--line); }
+.wait li { position: relative; padding: 0 0 14px 20px; }
+.wait li::before { content: ""; position: absolute; left: -6px; top: 8px; width: 10px; height: 10px; border-radius: 50%; background: var(--paper); border: 2px solid var(--muted); }
+.wait li:last-child { padding-bottom: 0; }
+.wait strong { display: block; font-weight: 650; }
+.wait span { color: var(--muted); font-size: 15px; }
+.paths { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 0; }
+.path { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+.path h3 { font-size: 16px; margin-bottom: 8px; }
+.path ol { margin: 0; padding-left: 20px; font-size: 15px; }
+.path li + li { margin-top: 4px; }
+
+footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+footer ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 8px 0 0; padding: 0; }
+
+@media (max-width: 560px) {
+  main { padding-top: 28px; }
+  :root { --rail: 0px; }
+  .step { padding-top: 24px; }
+  .step::before { display: none; }
+  .num { position: static; margin-bottom: 10px; }
+  .facts { grid-template-columns: 1fr; }
+  .facts div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .facts dd { text-align: right; }
+  .decide div { grid-template-columns: 1fr; }
+  .decide dd { text-align: left; }
+  .paths { grid-template-columns: 1fr; }
+  .tiles { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+@media print {
+  body { background: #fff; color: #000; }
+  main { max-width: none; padding: 0; }
+  .jump, .cmd button { display: none; }
+  .step, .screen, .stop, .path { break-inside: avoid; }
+  .screen { box-shadow: none; }
+  a { color: inherit; }
+}
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="kicker">Windows 11 recovery</div>
+  <h1>Reset this PC</h1>
+  <p class="promise">Nothing is erased until you click Reset on the last screen. You can back out at any step before that.</p>
+  <dl class="facts">
+    <div><dt>Your part</dt><dd>About 5 minutes</dd></div>
+    <div><dt>Windows' part</dt><dd>30 min to a few hours</dd></div>
+    <div><dt>Keep open on</dt><dd>Your phone</dd></div>
+  </dl>
+</header>
+
+<nav class="jump" aria-label="Steps">
+  <ol>
+    <li><a href="#prep">Prep</a></li>
+    <li><a href="#s1">1</a></li>
+    <li><a href="#s2">2</a></li>
+    <li><a href="#s3">3</a></li>
+    <li><a href="#s4">4</a></li>
+    <li><a href="#s5">5</a></li>
+    <li><a href="#s6">6</a></li>
+    <li class="end"><a href="#s7">7 Reset</a></li>
+    <li><a href="#after">After</a></li>
+  </ol>
+</nav>
+
+<ol class="steps">
+
+<li class="step prep" id="prep">
+  <span class="num" aria-hidden="true">0</span>
+  <h2>Before you start</h2>
+  <span class="time">10 minutes, longer if your backup is big</span>
+  <ul class="checks">
+    <li><label><input type="checkbox"><span>Back up the files you care about.<small>Do it even if you plan to pick Keep my files.</small></span></label></li>
+    <li><label><input type="checkbox"><span>Get your BitLocker recovery key onto paper or another device.<small>Find it at <a href="https://aka.ms/myrecoverykey" target="_blank" rel="noopener noreferrer">aka.ms/myrecoverykey</a>. The reset may ask for it.</small></span></label></li>
+    <li><label><input type="checkbox"><span>Plug in the charger.<small>A laptop that dies mid-reset can leave Windows unbootable.</small></span></label></li>
+  </ul>
+  <p class="tally" aria-live="polite"></p>
+</li>
+
+<li class="step" id="s1">
+  <span class="num" aria-hidden="true">1</span>
+  <h2>Restart into recovery</h2>
+  <span class="time">1 minute</span>
+  <p class="do">Save your work. Press <kbd>Win</kbd> + <kbd>R</kbd>, type this, press <kbd>Enter</kbd>.</p>
+  <div class="cmd">
+    <code id="cmd">shutdown /r /o /t 0</code>
+    <button type="button" data-copy="cmd" hidden>Copy</button>
+  </div>
+  <ul class="parts" aria-label="What each part does">
+    <li><code>/r</code> restart</li>
+    <li><code>/o</code> open recovery options</li>
+    <li><code>/t 0</code> no delay</li>
+  </ul>
+  <p class="aside">The PC restarts right away and opens a blue screen.</p>
+  <div class="alt">
+    <p><b>Prefer Settings?</b> Open Settings, then System, Recovery, Reset PC. That route starts at step 4.</p>
+  </div>
+</li>
+
+<li class="step" id="s2">
+  <span class="num" aria-hidden="true">2</span>
+  <h2>Choose an option</h2>
+  <span class="time">10 seconds</span>
+  <figure class="screen" aria-label="Recovery screen, Choose an option. Click Troubleshoot.">
+    <figcaption>Choose an option</figcaption>
+    <div class="tiles">
+      <span class="tile">Continue</span>
+      <span class="tile">Use a device</span>
+      <span class="tile go">Troubleshoot</span>
+      <span class="tile">Turn off your PC</span>
+    </div>
+  </figure>
+</li>
+
+<li class="step" id="s3">
+  <span class="num" aria-hidden="true">3</span>
+  <h2>Troubleshoot</h2>
+  <span class="time">10 seconds</span>
+  <figure class="screen" aria-label="Recovery screen, Troubleshoot. Click Reset this PC.">
+    <figcaption>Troubleshoot</figcaption>
+    <div class="tiles">
+      <span class="tile go">Reset this PC</span>
+      <span class="tile">Advanced options</span>
+    </div>
+  </figure>
+</li>
+
+<li class="step" id="s4">
+  <span class="num" aria-hidden="true">4</span>
+  <h2>Choose what to keep</h2>
+  <span class="time">1 minute to decide</span>
+  <figure class="screen" aria-label="Reset screen, Choose an option. Keep my files or Remove everything.">
+    <figcaption><small>Reset this PC</small>Choose an option</figcaption>
+    <div class="tiles">
+      <span class="tile maybe">Keep my files</span>
+      <span class="tile maybe">Remove everything</span>
+    </div>
+  </figure>
+  <dl class="decide">
+    <div><dt>Keeping the PC and your documents. Apps and settings still go.</dt><dd>Keep my files</dd></div>
+    <div><dt>Selling it, giving it away, or starting from zero.</dt><dd>Remove everything</dd></div>
+  </dl>
+  <p class="aside">Next it may ask you to pick your account and enter its password, or type the BitLocker key from prep.</p>
+</li>
+
+<li class="step" id="s5">
+  <span class="num" aria-hidden="true">5</span>
+  <h2>Reinstall from where?</h2>
+  <span class="time">1 minute to decide</span>
+  <figure class="screen" aria-label="Reset screen, How would you like to reinstall Windows. Cloud download or Local reinstall.">
+    <figcaption><small>Reset this PC</small>How would you like to reinstall Windows?</figcaption>
+    <div class="tiles">
+      <span class="tile maybe">Cloud download</span>
+      <span class="tile maybe">Local reinstall</span>
+    </div>
+  </figure>
+  <dl class="decide">
+    <div><dt>Windows was crashing or acting broken. Needs internet and several GB.</dt><dd>Cloud download</dd></div>
+    <div><dt>Internet is slow or metered. Uses the Windows files already on the PC.</dt><dd>Local reinstall</dd></div>
+  </dl>
+</li>
+
+<li class="step" id="s6">
+  <span class="num" aria-hidden="true">6</span>
+  <h2>Drives and cleaning</h2>
+  <span class="time">1 minute. Only shows up after Remove everything.</span>
+  <p class="aside">These can appear as their own screens, or under Additional settings, then Change settings.</p>
+
+  <h3 class="substep">Which drives?</h3>
+  <dl class="decide">
+    <div><dt>Almost always.</dt><dd>Only the Windows drive</dd></div>
+    <div><dt>Only if you want every other drive wiped too.</dt><dd>All drives</dd></div>
+  </dl>
+
+  <h3 class="substep">Clean the drive too?</h3>
+  <dl class="decide">
+    <div><dt>You're keeping the PC. Faster.</dt><dd>Just remove my files</dd></div>
+    <div><dt>You're selling or giving away the PC. Adds hours.</dt><dd>Fully clean the drive</dd></div>
+  </dl>
+  <p class="aside">Fully clean may show as Clean data: Yes. It makes deleted files harder to recover. It is not certified data wiping.</p>
+</li>
+
+<li class="step final" id="s7">
+  <span class="num" aria-hidden="true">7</span>
+  <h2>Ready to reset this PC</h2>
+  <span class="time">30 seconds to read</span>
+  <div class="stop">
+    <h3>Last screen before anything is erased</h3>
+    <ul>
+      <li>Read the summary. Check keep or remove, which drives, and cleaning.</li>
+      <li>Anything it lists for removal must already be backed up.</li>
+      <li>Wrong choice? Click Cancel and start again from step 1.</li>
+    </ul>
+  </div>
+  <figure class="screen" aria-label="Reset screen, Ready to reset this PC. Click Reset.">
+    <figcaption><small>Reset this PC</small>Ready to reset this PC</figcaption>
+    <div class="tiles">
+      <span class="tile go">Reset</span>
+      <span class="tile">Cancel</span>
+    </div>
+  </figure>
+</li>
+
+<li class="step after" id="after">
+  <span class="num" aria-hidden="true">&#10003;</span>
+  <h2>Let Windows finish</h2>
+  <span class="time">30 minutes to a few hours. Cleaning or a slow download takes longer.</span>
+  <ol class="wait">
+    <li><strong>Several restarts</strong><span>Normal. Leave it alone.</span></li>
+    <li><strong>A black screen for 15+ minutes</strong><span>Also normal. It has not failed.</span></li>
+    <li><strong>Setup screens: region, keyboard, network, account</strong><span>You'll see these after Remove everything. The reset is done.</span></li>
+  </ol>
+  <p class="aside">Keep the charger in. Don't hold the power button.</p>
+
+  <div class="paths">
+    <section class="path">
+      <h3>Giving it away</h3>
+      <ol>
+        <li>Stop at the first setup screen.</li>
+        <li>Turn it off there. The new owner does setup.</li>
+      </ol>
+    </section>
+    <section class="path">
+      <h3>Keeping it</h3>
+      <ol>
+        <li>Finish setup.</li>
+        <li>Run Windows Update.</li>
+        <li>Reinstall apps, restore your backup.</li>
+        <li>Something not working? Open Device Manager.</li>
+      </ol>
+    </section>
+  </div>
+</li>
+
+</ol>
+
+<footer>
+  <p>Screens are simplified. Labels and order vary by Windows version and PC. Checked against Microsoft docs and the Windows Central guide on September 23, 2026.</p>
+  <ul>
+    <li><a href="https://support.microsoft.com/en-us/windows/experience/backup-recovery/reset-your-pc" target="_blank" rel="noopener noreferrer">Microsoft: reset your PC</a></li>
+    <li><a href="https://www.windowscentral.com/microsoft/windows-help/how-to-reset-to-factory-settings-in-windows-11-or-windows-10" target="_blank" rel="noopener noreferrer">Windows Central walkthrough</a></li>
+    <li><a href="https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/shutdown" target="_blank" rel="noopener noreferrer">shutdown command reference</a></li>
+  </ul>
+</footer>
+
+</main>
+<script>
+(() => {
+  for (const button of document.querySelectorAll('[data-copy]')) {
+    const source = document.getElementById(button.dataset.copy);
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+      const text = source.textContent;
+      let copied = false;
+      try { await navigator.clipboard.writeText(text); copied = true; } catch {}
+      if (!copied) {
+        const range = document.createRange();
+        range.selectNodeContents(source);
+        const selection = getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        try { copied = document.execCommand('copy'); } catch {}
+      }
+      button.textContent = copied ? 'Copied' : 'Press Ctrl+C';
+      setTimeout(() => { button.textContent = 'Copy'; }, 1800);
+    });
+  }
+
+  const links = new Map([...document.querySelectorAll('.jump a')].map((a) => [a.hash.slice(1), a]));
+  if (!('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      for (const a of links.values()) a.removeAttribute('aria-current');
+      const link = links.get(entry.target.id);
+      if (!link) continue;
+      link.setAttribute('aria-current', 'true');
+      link.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  for (const id of links.keys()) {
+    const target = document.getElementById(id);
+    if (target) observer.observe(target);
+  }
+})();
+</script>
+</body>
+</html>
