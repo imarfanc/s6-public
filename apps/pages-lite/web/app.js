@@ -6,7 +6,7 @@ const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
 let files = [], selected = '', filter = 'all', mode = 'preview', content = null, requestId = 0;
 const type = name => name.split('.').pop().toLowerCase().replace(/^htm$/, 'html');
-const kinds = {html: 'HTML PAGE', md: 'MARKDOWN NOTE', toml: 'TOML FILE', json: 'JSON FILE'};
+const kinds = {html: 'HTML', md: 'Markdown', toml: 'TOML', json: 'JSON'};
 function preview(name, text) {
   if (type(name) === 'html') return text;
   if (type(name) === 'md') return markdown(text);
@@ -28,15 +28,16 @@ function list() {
   $('#count').textContent = `${visible.length} of ${files.length} files`;
   $('#files').replaceChildren(...visible.map(name => {
     const button = document.createElement('button'); button.className='file'; button.setAttribute('aria-current',name === selected ? 'page' : 'false');
-    const badge=document.createElement('span');badge.className='badge';badge.textContent=type(name).toUpperCase();
-    const label=document.createElement('span');label.textContent=name;
-    button.append(badge,label);button.onclick=()=>open(name);return button;
+    const badge=document.createElement('span');badge.className='kind';badge.dataset.kind=type(name);badge.textContent=type(name);
+    const label=document.createElement('span');label.className='file-name';label.textContent=name.split('/').pop();
+    const folder=document.createElement('span');folder.className='file-path';folder.textContent=name.includes('/')?name.slice(0,name.lastIndexOf('/')):'';
+    button.title=name;button.append(label,badge);if(folder.textContent)button.append(folder);button.onclick=()=>open(name);return button;
   }));
   if(!visible.length) {const p=document.createElement('p');p.className='muted';p.textContent=files.length?'No matching files. Try another search.':'No files yet. Add HTML, Markdown, TOML, or JSON to the data folder.';$('#files').append(p);}
 }
 async function get(url) {const response=await fetch(url,{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error || 'Could not load files.');return data;}
 async function open(name) {
-  const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=kinds[type(name)];status('Loading document…');
+  const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=kinds[type(name)];$('#kind').dataset.kind=type(name);status('Loading document…');
   try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;markOpened(name);$('#source').innerHTML=highlight(content, type(name));$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
   catch(error){if(id===requestId)status(error.message);}
 }

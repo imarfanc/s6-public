@@ -1,0 +1,70 @@
+/* Shared by grid and list views. Warm paper in light, deep ink-green in dark; one green accent
+   matching app.yaml. Colors follow the system scheme through light-dark(). */
+:root {
+  color-scheme: light dark;
+  --bg: light-dark(#f3f0e8, #111513);
+  --rail: light-dark(#ebe7dc, #0c0f0d);
+  --surface: light-dark(#fffdf8, #191e1a);
+  --sunken: light-dark(#f7f4ec, #151a16);
+  --ink: light-dark(#1c2620, #e3e9e3);
+  --muted: light-dark(#5c6a60, #95a399);
+  --faint: light-dark(#6e7a71, #7b877e);
+  --line: light-dark(#dcd6c7, #29312b);
+  --line-strong: light-dark(#c9c2b0, #3a443d);
+  --accent: light-dark(#497866, #86bfa3);
+  --accent-ink: light-dark(#2f5a49, #a9d8c1);
+  --accent-soft: light-dark(#49786617, #86bfa31c);
+  --html: light-dark(#8a5a1c, #e3bd85);
+  --html-soft: light-dark(#9a6a2a17, #e3bd851a);
+  --shadow: 0 1px 2px light-dark(#1c262012, #0007), 0 8px 24px -12px light-dark(#1c262030, #000c);
+  --lift: 0 2px 4px light-dark(#1c262014, #0008), 0 18px 36px -14px light-dark(#1c26203d, #000e);
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --radius: 10px;
+  font: 14px/1.5 var(--sans);
+  color: var(--ink);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::selection { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+
+button, input, select { font: inherit; color: var(--ink); }
+button { cursor: pointer; }
+.icon { width: 16px; height: 16px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Brand block at the top of each view's sidebar. */
+.brand { display: flex; align-items: center; gap: 11px; }
+.brand-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; color: #fff; background: #497866; box-shadow: inset 0 -1px 0 #0002; }
+.brand-mark .icon { width: 18px; height: 18px; }
+.brand h1 { margin: 0; font: 600 19px/1.1 var(--serif); letter-spacing: -.015em; }
+.brand p { margin: 2px 0 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Quiet buttons: bordered on surface, accent on hover. */
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 32px; padding: 5px 11px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; font-size: 13px; text-decoration: none; transition: border-color .15s, background-color .15s, color .15s; }
+.button:hover { border-color: var(--line-strong); background: var(--sunken); }
+.button:disabled { opacity: .55; cursor: progress; }
+.button:disabled .icon { animation: spin 1s linear infinite; }
+.button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.button.ghost:hover { color: var(--ink); background: var(--accent-soft); }
+@keyframes spin { to { rotate: 360deg; } }
+
+.search { position: relative; display: flex; align-items: center; }
+.search .icon { position: absolute; left: 10px; color: var(--faint); pointer-events: none; }
+.search input { width: 100%; min-height: 36px; padding: 7px 34px 7px 33px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; transition: border-color .15s, box-shadow .15s; }
+.search input::placeholder { color: var(--faint); }
+.search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search kbd { position: absolute; right: 8px; padding: 1px 6px; color: var(--faint); border: 1px solid var(--line); border-radius: 4px; font: 11px/1.4 var(--mono); pointer-events: none; }
+.search input:focus ~ kbd, .search input:not(:placeholder-shown) ~ kbd { display: none; }
+@media (hover: none) { .search kbd { display: none; } }
+
+/* File type tag: rendered pages are amber, text documents are green. */
+.kind { flex-shrink: 0; padding: 2px 6px; border-radius: 4px; color: var(--accent-ink); background: var(--accent-soft); font: 600 10px/1.5 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.kind[data-kind=html] { color: var(--html); background: var(--html-soft); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

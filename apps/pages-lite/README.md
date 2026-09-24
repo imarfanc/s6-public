@@ -13,11 +13,18 @@ in an isolated sandbox without access to the app's origin.
 
 The app opens in grid view at `/apps/pages-lite/`. List view remains available from the toolbar.
 
-Folder grouping and standalone tabs are enabled by default. Use the controls above the grid to sort
+The grid view has a library rail on the left: All files, Recently opened, each folder (including
+parents of nested folders), and each file type, with counts. The selected scope is kept in the URL
+hash (`#folder/shopping`, `#type/md`, `#recent`), so it can be bookmarked and Back returns to the
+previous scope. Search filters within the scope; press `/` to jump to it. On narrow screens the rail
+becomes a row of scrolling chips.
+
+Folder grouping and new-tab opening are enabled by default. Use the controls in the top bar to sort
 by name, file type, folder, or recently opened, group by folder, type, name initial, or recent
-activity, and switch to a flat grid or dialog reader; preferences are remembered in this browser.
-The dialog also has an Open standalone link. Standalone HTML links open the actual file under
-`data/`; other formats use the reader. Standalone URLs can be bookmarked.
+activity, and open files in a new tab or a dialog reader; preferences are remembered in this
+browser. The dialog also has an Open in new tab link. Standalone HTML links open the actual file
+under `data/`; other formats use the reader. Standalone URLs can be bookmarked. Previews reload only
+when a change reorders or regroups the grid.
 
 Markdown fenced code blocks include a copy button and simple highlighting for strings, comments,
 keywords, numbers, and shell variables. Add a language after the opening fence (for example `bash`

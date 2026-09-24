@@ -5,24 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <title>Pages Lite</title>
+  <link rel="stylesheet" href="theme.css">
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
-  <header class="masthead"><div><span class="eyebrow">YOUR LITTLE FILE LIBRARY</span><h1>Pages Lite<span> /</span></h1></div><a href="index.html">Grid view</a><button id="refresh">↻ Refresh files</button></header>
-  <main class="workspace">
-    <aside aria-label="File library">
-      <label for="search">Find a page</label><input id="search" type="search" placeholder="Search filenames…">
-      <div class="filters" role="group" aria-label="File type"><button data-filter="all" aria-pressed="true">All</button><button data-filter="html" aria-pressed="false">HTML</button><button data-filter="md" aria-pressed="false">Markdown</button><button data-filter="toml" aria-pressed="false">TOML</button><button data-filter="json" aria-pressed="false">JSON</button></div>
-      <p id="count" class="muted" aria-live="polite">Loading files…</p><nav id="files" aria-label="Files"></nav>
-      <p class="folder-note">A folder, a few files, a place to read.<br>Add <code>.html</code>, <code>.htm</code>, <code>.md</code>, <code>.toml</code>, or <code>.json</code> files to <code>apps/pages-lite/data/</code>, then refresh.</p>
+  <svg hidden>
+    <symbol id="i-app" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M10 4v4M2 8h20M6 4v4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  </svg>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="File library">
+      <div class="brand"><span class="brand-mark"><svg class="icon"><use href="#i-app"/></svg></span><h1>Pages Lite</h1></div>
+      <label class="search"><svg class="icon"><use href="#i-search"/></svg><input id="search" type="search" aria-label="Search files" placeholder="Search files"></label>
+      <div class="filters" role="group" aria-label="File type"><button data-filter="all" aria-pressed="true">All</button><button data-filter="html" aria-pressed="false">HTML</button><button data-filter="md" aria-pressed="false">MD</button><button data-filter="toml" aria-pressed="false">TOML</button><button data-filter="json" aria-pressed="false">JSON</button></div>
+      <p id="count" aria-live="polite">Loading files…</p>
+      <nav id="files" aria-label="Files"></nav>
+      <div class="sidebar-foot">
+        <button id="refresh" class="button" type="button"><svg class="icon"><use href="#i-refresh"/></svg><span>Refresh</span></button>
+        <a class="button ghost" href="grid.html"><svg class="icon"><use href="#i-grid"/></svg><span>Grid view</span></a>
+      </div>
     </aside>
     <section class="reader" aria-label="Document reader">
-      <header class="reader-bar"><div><span class="eyebrow" id="kind">LIBRARY</span><h2 id="title">Choose a file</h2></div><div class="views" role="group" aria-label="Document view"><button id="preview-mode" aria-pressed="true">Preview</button><button id="source-mode" aria-pressed="false">Source</button><a id="standalone" href="reader.html" target="_blank" rel="noopener noreferrer" hidden>Open standalone ↗</a></div></header>
+      <header class="reader-bar">
+        <div class="reader-name"><span class="kind" id="kind">Library</span><h2 id="title">Choose a file</h2></div>
+        <div class="views">
+          <div class="track" role="group" aria-label="Document view"><button id="preview-mode" aria-pressed="true">Preview</button><button id="source-mode" aria-pressed="false">Source</button></div>
+          <a id="standalone" class="button ghost" href="reader.html" target="_blank" rel="noopener noreferrer" hidden><svg class="icon"><use href="#i-external"/></svg>Open in new tab</a>
+        </div>
+      </header>
       <p id="status" role="status" hidden></p>
       <iframe id="preview" title="Document preview" sandbox="allow-scripts" hidden></iframe>
       <pre id="source" tabindex="0" hidden></pre>
     </section>
-  </main>
+  </div>
 </body>
 </html>
