@@ -47,5 +47,8 @@ result, but cannot start stale playback. If browser storage is unavailable, a me
 until the page closes. Bump `CACHE_VERSION` in `web/poem-audio.js` when changing provider settings.
 
 Recent activity records opens in this browser, including list view. It is not a file modification
-date. Grouping uses Today, Yesterday, Previous 7 days, Earlier, and Never opened. Existing
-folder-group and open-mode preferences are preserved.
+date. Grouping uses non-overlapping minute ranges under 30 minutes, then local-time evening,
+afternoon, morning, and overnight groups for the rest of today. Older opens use Yesterday, 2–7 days
+ago, 8–30 days ago, and Older, with Never opened last. Empty groups are hidden. Groups refresh every
+30 seconds while visible and when returning to the page. Existing folder-group and open-mode
+preferences are preserved.

@@ -169,20 +169,16 @@ Deno.test("history uses calendar midnight and preserves old undated history", ()
   const nodes = buildHistoryTree(apps, opened, now);
   assertEquals(nodes.map((node) => node.label), [
     "Yesterday",
-    "Last 3 days",
-    "Last week",
-    "Last month",
-    "Last year",
+    "2–7 days ago",
+    "8–30 days ago",
     "Older",
     "Unknown date",
   ]);
   assertEquals(nodes.map((node) => node.apps.map((app) => app.id)), [
     ["1"],
-    ["2", "3"],
-    ["4", "7"],
+    ["2", "3", "4", "7"],
     ["8", "30"],
-    ["31", "365"],
-    ["366"],
+    ["31", "365", "366"],
     ["unknown"],
   ]);
   assertEquals(buildHistoryTree([{ id: "unopened" }], opened, now), []);

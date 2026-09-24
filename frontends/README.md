@@ -96,10 +96,12 @@ no media-query duplicates beyond the one dark `--glass-bg` override.
 ## History
 
 History groups each app by its latest opening, with local-calendar Today and Yesterday boundaries.
-Today has buckets for under 5 minutes, 5 to 10 minutes, 10 to 30 minutes, and Earlier today. Older
-buckets cover days 2–3, 4–7, 8–30, 31–365, and Older. Empty buckets are hidden. The view refreshes
-every 30 seconds while visible and when returning to the page. Existing browser history without
-timestamps remains under Unknown date until reopened.
+Today has buckets for under 5 minutes, 5 to 10 minutes, and 10 to 30 minutes, followed by This
+evening, This afternoon, This morning, and Overnight for remaining opens. Local time periods start
+at 18:00, 12:00, 06:00, and midnight. Older buckets cover Yesterday, 2–7 days ago, 8–30 days ago,
+and Older. Empty buckets are hidden. The view refreshes every 30 seconds while visible and when
+returning to the page. Existing browser history without timestamps remains under Unknown date until
+reopened.
 
 The `d` shortcut cycles indentation for the active sidebar tab; each tab remembers its own value.
 History uses the same group disclosure controls and `x` shortcut as the other views.

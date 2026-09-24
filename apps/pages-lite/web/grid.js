@@ -1,4 +1,4 @@
-import { compareEntries, groupKey, readRecent, markOpened } from './organize.js';
+import { compareEntries, groupKey, readRecent, markOpened, recentGroups } from './organize.js';
 import { fileType, standaloneURL, preview as renderPreview } from './preview.js';
 const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
@@ -155,7 +155,7 @@ function arrange() {
     }
     groups.get(folder).append(entry.card);
   }
-  const order = ['Today', 'Yesterday', 'Previous 7 days', 'Earlier', 'Never opened'];
+  const order = recentGroups;
   for (const [, cards] of [...groups].sort(([a], [b]) => mode === 'recent' ? order.indexOf(a) - order.indexOf(b) : a.localeCompare(b, undefined, { numeric: true }))) grid.append(cards.parentElement);
   filter();
 }
@@ -258,6 +258,8 @@ for (const radio of document.querySelectorAll('input[name=open-mode]')) radio.ad
 window.addEventListener('popstate', () => { renderScopes(); arrange(); });
 window.addEventListener('storage', () => { renderScopes(); arrange(); });
 window.addEventListener('focus', () => { renderScopes(); arrange(); });
+setInterval(() => { if (!document.hidden) arrange(); }, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderScopes(); arrange(); } });
 // "/" jumps to search from anywhere outside a text field.
 document.addEventListener('keydown', event => {
   if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || $('#reader').open) return;

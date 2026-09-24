@@ -1,3 +1,4 @@
+export const recentGroups = ['Last 5 mins', '5–10 mins ago', '10–30 mins ago', 'This evening', 'This afternoon', 'This morning', 'Overnight', 'Yesterday', '2–7 days ago', '8–30 days ago', 'Older', 'Never opened'];
 export const fileKind = name => /\.html?$/i.test(name) ? 'HTML' : name.split('.').pop().toUpperCase();
 const folder = name => name.includes('/') ? name.slice(0, name.lastIndexOf('/')) : '';
 const baseName = name => name.split('/').pop();
@@ -31,7 +32,16 @@ export function groupKey(name, mode, recent = {}, now = Date.now()) {
     const today = new Date(now); today.setHours(0, 0, 0, 0);
     const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
     const week = new Date(today); week.setDate(week.getDate() - 7);
-    return time >= +today ? 'Today' : time >= +yesterday ? 'Yesterday' : time >= +week ? 'Previous 7 days' : 'Earlier';
+    const month = new Date(today); month.setDate(month.getDate() - 30);
+    if (time >= +today) {
+      const age = Math.max(0, now - time) / 60000;
+      if (age < 5) return recentGroups[0];
+      if (age < 10) return recentGroups[1];
+      if (age < 30) return recentGroups[2];
+      const hour = new Date(time).getHours();
+      return hour >= 18 ? 'This evening' : hour >= 12 ? 'This afternoon' : hour >= 6 ? 'This morning' : 'Overnight';
+    }
+    return time >= +yesterday ? 'Yesterday' : time >= +week ? '2–7 days ago' : time >= +month ? '8–30 days ago' : 'Older';
   }
   return '';
 }

@@ -94,17 +94,18 @@ export function buildHistoryTree(apps, opened, now = Date.now()) {
   const current = node("today", "Today");
   current.children = [
     node("5m", "Last 5 mins"),
-    node("10m", "5–10 mins"),
-    node("30m", "10–30 mins"),
-    node("earlier", "Earlier today"),
+    node("10m", "5–10 mins ago"),
+    node("30m", "10–30 mins ago"),
+    node("evening", "This evening"),
+    node("afternoon", "This afternoon"),
+    node("morning", "This morning"),
+    node("overnight", "Overnight"),
   ];
   /** @type {Array<[number, HistoryNode<T>]>} */
   const older = [
     [dayStart(1), node("yesterday", "Yesterday")],
-    [dayStart(3), node("3d", "Last 3 days")],
-    [dayStart(7), node("week", "Last week")],
-    [dayStart(30), node("month", "Last month")],
-    [dayStart(365), node("year", "Last year")],
+    [dayStart(7), node("week", "2–7 days ago")],
+    [dayStart(30), node("month", "8–30 days ago")],
     [-Infinity, node("older", "Older")],
   ];
   const unknown = node("unknown", "Unknown date");
@@ -116,7 +117,9 @@ export function buildHistoryTree(apps, opened, now = Date.now()) {
       unknown.apps.push(app);
     } else if (time >= today.getTime()) {
       const age = Math.max(0, now - time) / 60000;
-      current.children[age < 5 ? 0 : age < 10 ? 1 : age < 30 ? 2 : 3].apps.push(app);
+      const hour = new Date(time).getHours();
+      const period = hour >= 18 ? 3 : hour >= 12 ? 4 : hour >= 6 ? 5 : 6;
+      current.children[age < 5 ? 0 : age < 10 ? 1 : age < 30 ? 2 : period].apps.push(app);
     } else {
       older.find(([start]) => time >= start)[1].apps.push(app);
     }
