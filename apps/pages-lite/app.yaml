@@ -1,11 +1,13 @@
 id: pages-lite
 name: Pages Lite
-description: A simple library of HTML pages and Markdown notes from a data folder.
+description: A simple preview grid of HTML pages and Markdown notes.
 icon: lucide:app-window
 color: "#497866"
 appspace: Examples
 sections: [tools]
 tags: [html, markdown, files, reader]
 backend: apps/pages-lite/server/route.ts
+entry: grid.html
 children:
+  - list.html
   - grid.html

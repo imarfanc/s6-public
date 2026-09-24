@@ -1,3 +1,4 @@
+import { compareEntries, groupKey, readRecent, markOpened } from './organize.js';
 import { fileType, standaloneURL, preview as renderPreview } from './preview.js';
 const $ = selector => document.querySelector(selector);
 const api = '/api/apps/pages-lite/files';
@@ -10,23 +11,28 @@ async function get(url, signal) {
 }
 const readerURL = name => `reader.html?file=${encodeURIComponent(name)}`;
 try {
-  $('#group-folders').checked = localStorage.getItem('pages-grid.group') !== 'false';
+  const group = localStorage.getItem('pages-grid.group');
+  $('#group').value = ['folder', 'none', 'type', 'initial', 'recent'].includes(group) ? group : group === 'false' ? 'none' : 'folder';
+  const sort = localStorage.getItem('pages-grid.sort');
+  if (['name', 'name-desc', 'recent', 'type', 'folder'].includes(sort)) $('#sort').value = sort;
   $('#open-mode').value = localStorage.getItem('pages-grid.open') === 'dialog' ? 'dialog' : 'standalone';
 } catch {}
 function savePreferences() {
   try {
-    localStorage.setItem('pages-grid.group', $('#group-folders').checked);
+    localStorage.setItem('pages-grid.group', $('#group').value);
+    localStorage.setItem('pages-grid.sort', $('#sort').value);
     localStorage.setItem('pages-grid.open', $('#open-mode').value);
   } catch {}
 }
 function arrange() {
   const grid = $('#grid'); grid.replaceChildren();
-  grid.classList.toggle('grouped', $('#group-folders').checked);
+  const mode = $('#group').value, recent = readRecent();
+  grid.classList.toggle('grouped', mode !== 'none');
   const groups = new Map();
-  for (const entry of entries) {
-    const folder = entry.name.includes('/') ? entry.name.slice(0, entry.name.lastIndexOf('/')) : '';
-    entry.card.querySelector('.filename').textContent = $('#group-folders').checked ? entry.name.split('/').pop() : entry.name;
-    if (!$('#group-folders').checked) { grid.append(entry.card); continue; }
+  for (const entry of [...entries].sort(compareEntries($('#sort').value, recent))) {
+    const folder = groupKey(entry.name, mode, recent);
+    entry.card.querySelector('.filename').textContent = mode === 'folder' ? entry.name.split('/').pop() : entry.name;
+    if (mode === 'none') { grid.append(entry.card); continue; }
     if (!groups.has(folder)) {
       const section = document.createElement('section'); section.className = 'folder-group';
       const heading = document.createElement('h2');
@@ -38,9 +44,13 @@ function arrange() {
     }
     groups.get(folder).append(entry.card);
   }
+  const order = ['Today', 'Yesterday', 'Previous 7 days', 'Earlier', 'Never opened'];
+  for (const [key, cards] of [...groups].sort(([a], [b]) => mode === 'recent' ? order.indexOf(a) - order.indexOf(b) : a.localeCompare(b, undefined, { numeric: true }))) grid.append(cards.parentElement);
   filter();
 }
 function show(entry) {
+  markOpened(entry.name);
+  arrange();
   if ($('#open-mode').value === 'standalone') { window.open(standaloneURL(entry.name), '_blank', 'noopener'); return; }
   $('#standalone').href = standaloneURL(entry.name);
   $('#reader-title').textContent = entry.name;
@@ -112,6 +122,8 @@ $('#search').addEventListener('input', filter);
 $('#refresh').addEventListener('click', refresh);
 $('#close').addEventListener('click', () => $('#reader').close());
 $('#reader').addEventListener('close', () => $('#full-preview').src = 'about:blank');
-$('#group-folders').addEventListener('change', () => { savePreferences(); arrange(); });
+for (const id of ['#group', '#sort']) $(id).addEventListener('change', () => { savePreferences(); arrange(); });
+window.addEventListener('storage', () => arrange());
+window.addEventListener('focus', () => arrange());
 $('#open-mode').addEventListener('change', savePreferences);
 await refresh();

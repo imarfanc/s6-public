@@ -1,40 +1,44 @@
 # Pages Lite
 
-A small, read-only file library inspired by htmlpages-V8. Uses native HTML, JavaScript modules, and
-modern CSS (cascade layers, light-dark colors, fluid sizing, and responsive grids). No framework,
-build step, database, or external dependencies.
+A simple grid of HTML, Markdown, TOML, and JSON previews. Search by filename and click a card to
+read the full page. Close the reader with Close or Escape.
 
-Open `/apps/pages-lite/` in the existing repository server, or choose **Pages Lite** under
-**Examples → tools**.
+Add `.html`, `.htm`, `.md`, `.toml`, or `.json` files under `data/`, including subfolders, then
+click Refresh. Each checkout keeps its own files. Files are read through the shared platform; no
+database or build step.
 
-Add `.html`, `.htm`, `.md`, `.toml`, or `.json` files to `data/`, including subfolders, then click
-**Refresh files**. Files are discovered through the platform's filesystem/Val Town adapter. No file
-manifest is needed. The four bundled examples are two HTML pages and two Markdown notes.
+Markdown supports headings, paragraphs, lists, emphasis, links, quotes, and fenced code. Raw HTML in
+Markdown is escaped. Grid previews have scripts disabled; the expanded HTML preview allows scripts
+in an isolated sandbox without access to the app's origin.
 
-Search filenames, filter by type, and switch between preview and source. The URL hash remembers the
-selected file. Edit documents on disk; this app does not write or delete files.
+The app opens in grid view at `/apps/pages-lite/`. List view remains available from the toolbar.
 
-Use **Open standalone** beside Preview and Source to open any supported file in a new tab. Markdown
-is rendered as a document; JSON and TOML use code highlighting and a Copy button, matching the grid
-reader. HTML opens directly at `/apps/pages-lite/data/<filename>.html`, without the reader wrapper.
-Embedded HTML previews still use an isolated sandbox.
+Folder grouping and standalone tabs are enabled by default. Use the controls above the grid to sort
+by name, file type, folder, or recently opened, group by folder, type, name initial, or recent
+activity, and switch to a flat grid or dialog reader; preferences are remembered in this browser.
+The dialog also has an Open standalone link. Standalone HTML links open the actual file under
+`data/`; other formats use the reader. Standalone URLs can be bookmarked.
 
-Markdown supports headings, paragraphs, ordered/unordered lists, emphasis, inline/fenced code,
-blockquotes, rules, and HTTP(S) links. It is a small subset, not full CommonMark; raw HTML is
-escaped. HTML previews permit scripts inside an opaque-origin sandbox, without parent-page access.
-HTML files should be self-contained: relative images, stylesheets, scripts, and cross-file links are
-not resolved from the data folder. Markdown previews use the same sandbox.
+Markdown fenced code blocks include a copy button and simple highlighting for strings, comments,
+keywords, numbers, and shell variables. Add a language after the opening fence (for example `bash`
+or `js`) to identify the block. Copy preserves the original code text.
 
-TOML and JSON previews display escaped, preformatted text without parsing or executing it. Source
-shows the original contents, including any invalid syntax.
+TOML and JSON display as escaped, preformatted text in grid previews and both reader modes. Contents
+are preserved without parsing, including any invalid syntax.
 
-## Grid frontend
+## Hsin Hsin Ming audio
 
-Choose the **grid** child under Pages Lite, or open `/apps/pages-lite/grid.html`. This alternate
-frontend uses the same data folder and API as the default list view. It follows the Pages Grid
-frontend in `s6-local`, with preview cards, filename search, optional folder grouping, and a choice
-of a dialog or standalone reader. Grouping and opening preferences are saved in the browser.
+The poem plays one selected couplet at a time. Device voices support English, Chinese, or both. The
+optional Inworld English voice supports English, Urdu, and Punjabi using the same model and voice as
+edu-words, through `POST /api/apps/pages-lite/tts`. Set `INWORLD_API_KEY` in the server environment
+to enable it. The key stays on the server.
 
-Thumbnails disable scripts. Full HTML documents use an opaque-origin sandbox with scripts enabled.
-The grid reader renders escaped Markdown, TOML, and JSON with code highlighting and copy buttons.
-Its renderer lives in `web/grid-markdown.js`; the default frontend keeps `web/markdown.js`.
+Generated MP3s are saved in IndexedDB by text, language, and model/voice version. Replaying or
+changing speed reuses the recording. Requests run serially; repeated requests share pending work,
+and superseded queued passages are skipped. A generation already in progress finishes and caches its
+result, but cannot start stale playback. If browser storage is unavailable, a memory cache lasts
+until the page closes. Bump `CACHE_VERSION` in `web/poem-audio.js` when changing provider settings.
+
+Recent activity records opens in this browser, including list view. It is not a file modification
+date. Grouping uses Today, Yesterday, Previous 7 days, Earlier, and Never opened. Existing
+folder-group and open-mode preferences are preserved.

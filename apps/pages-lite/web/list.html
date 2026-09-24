@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Pages Lite</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="masthead"><div><span class="eyebrow">YOUR LITTLE FILE LIBRARY</span><h1>Pages Lite<span> /</span></h1></div><a href="index.html">Grid view</a><button id="refresh">↻ Refresh files</button></header>
+  <main class="workspace">
+    <aside aria-label="File library">
+      <label for="search">Find a page</label><input id="search" type="search" placeholder="Search filenames…">
+      <div class="filters" role="group" aria-label="File type"><button data-filter="all" aria-pressed="true">All</button><button data-filter="html" aria-pressed="false">HTML</button><button data-filter="md" aria-pressed="false">Markdown</button><button data-filter="toml" aria-pressed="false">TOML</button><button data-filter="json" aria-pressed="false">JSON</button></div>
+      <p id="count" class="muted" aria-live="polite">Loading files…</p><nav id="files" aria-label="Files"></nav>
+      <p class="folder-note">A folder, a few files, a place to read.<br>Add <code>.html</code>, <code>.htm</code>, <code>.md</code>, <code>.toml</code>, or <code>.json</code> files to <code>apps/pages-lite/data/</code>, then refresh.</p>
+    </aside>
+    <section class="reader" aria-label="Document reader">
+      <header class="reader-bar"><div><span class="eyebrow" id="kind">LIBRARY</span><h2 id="title">Choose a file</h2></div><div class="views" role="group" aria-label="Document view"><button id="preview-mode" aria-pressed="true">Preview</button><button id="source-mode" aria-pressed="false">Source</button><a id="standalone" href="reader.html" target="_blank" rel="noopener noreferrer" hidden>Open standalone ↗</a></div></header>
+      <p id="status" role="status" hidden></p>
+      <iframe id="preview" title="Document preview" sandbox="allow-scripts" hidden></iframe>
+      <pre id="source" tabindex="0" hidden></pre>
+    </section>
+  </main>
+</body>
+</html>

@@ -13,7 +13,7 @@
 }
 @layer controls {
   button,.views a { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px 12px; font-size:12px; } .views a { color:inherit; text-decoration:none; } button:hover,.views a:hover { background:var(--accent); } button[aria-pressed="true"] { background:var(--accent); border-color:light-dark(#9cb49c,#6c896c); } button:disabled { opacity:.5; cursor:wait; }
-  .file { display:flex; gap:12px; align-items:center; width:100%; text-align:left; padding:14px 12px; background:transparent; border-color:transparent; } .file[aria-current="page"] { background:var(--accent); border-color:var(--line); } .file span:last-child { min-width:0; overflow-wrap:anywhere; } .badge { font:10px ui-monospace,monospace; border:1px solid var(--line); background:var(--panel); border-radius:4px; padding:5px; } 
+  .file { display:flex; gap:12px; align-items:center; width:100%; text-align:left; padding:14px 12px; background:transparent; border-color:transparent; } .file[aria-current="page"] { background:var(--accent); border-color:var(--line); } .file span:last-child { min-width:0; overflow-wrap:anywhere; } .badge { font:10px ui-monospace,monospace; border:1px solid var(--line); background:var(--panel); border-radius:4px; padding:5px; }
 }
 
 #source .token-comment{color:light-dark(#60715f,#a2b19d)}

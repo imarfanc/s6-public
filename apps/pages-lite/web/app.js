@@ -1,3 +1,4 @@
+import { markOpened } from './organize.js';
 import { markdown, escapeHTML } from './markdown.js';
 import { standaloneURL } from './preview.js';
 import { highlight } from './grid-markdown.js';
@@ -36,7 +37,7 @@ function list() {
 async function get(url) {const response=await fetch(url,{cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.error || 'Could not load files.');return data;}
 async function open(name) {
   const id=++requestId;selected=name;content=null;list();view();$('#title').textContent=name;$('#kind').textContent=kinds[type(name)];status('Loading document…');
-  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;$('#source').innerHTML=highlight(content, type(name));$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
+  try {const data=await get(`${api}?file=${encodeURIComponent(name)}`);if(id!==requestId)return;content=data.content;markOpened(name);$('#source').innerHTML=highlight(content, type(name));$('#preview').srcdoc=preview(name, content);history.replaceState(null,'',`#${encodeURIComponent(name)}`);status('');view();}
   catch(error){if(id===requestId)status(error.message);}
 }
 async function refresh() {

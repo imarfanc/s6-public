@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Pages Grid</title>
+  <title>Pages Lite</title>
   <link rel="stylesheet" href="grid.css">
   <script type="module" src="grid.js"></script>
 </head>
 <body>
   <main>
-    <header><h1>Pages</h1><div class="tools"><a href="index.html">List view</a><input id="search" type="search" aria-label="Search files" placeholder="Search files…"><button id="refresh" type="button">Refresh</button></div></header>
-    <div class="options"><label><input id="group-folders" type="checkbox" checked> Group by folder</label><label>Open in <select id="open-mode"><option value="standalone">Standalone tab</option><option value="dialog">Dialog</option></select></label></div>
+    <header><h1>Pages Lite</h1><div class="tools"><a href="list.html">List view</a><input id="search" type="search" aria-label="Search files" placeholder="Search files…"><button id="refresh" type="button">Refresh</button></div></header>
+    <div class="options"><label>Sort <select id="sort"><option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="recent">Recently opened</option><option value="type">File type</option><option value="folder">Folder</option></select></label><label>Group <select id="group"><option value="folder">Folder</option><option value="none">None</option><option value="type">File type</option><option value="initial">Name initial</option><option value="recent">Recently opened</option></select></label><label>Open in <select id="open-mode"><option value="standalone">Standalone tab</option><option value="dialog">Dialog</option></select></label></div>
     <p id="status" role="status">Loading files…</p>
     <section id="grid" aria-label="File previews"></section>
     <footer>Add .html, .htm, .md, .toml, or .json files to <code>apps/pages-lite/data/</code></footer>
